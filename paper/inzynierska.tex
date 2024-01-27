@@ -1,0 +1,102 @@
+\documentclass[xodstep]{wnspt}
+
+\author      {Grzegorz Gromko}
+\nralbumu    {80385}
+\kierunek    {Informatyka}
+\specjalnosc {Inżynieria oprogramowania}
+\date        {2024}
+\miejsce     {Częstochowa,}
+\opiekun     {dr hab. Andrzej Zbrzezny, prof. UJD}
+\opiekunpom  {}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage{polski}
+\usepackage{times}
+\usepackage{colortbl}
+\usepackage{hyperref}
+\usepackage{multibib}
+\usepackage{url}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{listingsutf8}
+\usepackage{beramono}
+\usepackage[section]{placeins}
+\usepackage{csquotes}
+\usepackage{abstract}
+%\usepackage[%backend=biber,refsegment=section,defernumbers=true,]{biblatex}
+
+\lstset { %
+language=csh,                  % choose the language of the code
+basicstyle=\ttfamily,           % the fonts that are used for the code
+numbers=left,                   % where to put the line-numbers
+numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
+stepnumber=1,                   % the step between two line-numbers. If it's 1 each line will be
+numbersep=5pt,                  % how far the line-numbers are from the code
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,                   % adds a frame around the code
+tabsize=4,                      % sets default tabsize to 2 spaces
+captionpos=b,                   % sets the caption-position to bottom
+breaklines=true,                % sets automatic line breaking
+breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+escapeinside={\%*}{*)}         % if you want to add a comment within your code 
+}
+
+\newcommand{\R}{mathbb{R}}
+
+\renewcommand{\lstlistlistingname}{Spis listingów}
+\renewcommand{\lstlistingname}{Listing}
+
+\newtheorem{lemat}{Lemat}
+\newtheorem{twierdzenie}{Twierdzenie}
+
+\title{ Projekt i implementacja programu do optycznego rozpoznawania i przetwarzania zapisu nutowego do formatu MIDI w języku Python
+\\{~}
+Design and implementation of a program for optical recognition and processing of musical notation to MIDI format in Python}
+
+\frenchspacing
+
+\begin{document}
+
+\maketitle
+\onehalfspacing
+
+\begin{abstract}
+	Celem niniejszej pracy jest stworzenie programu służącego do optycznego rozpoznawania zapisu nutowego z plików graficznych oraz przetworzenia wydobytych informacji semantycznych do pliku w formacie MIDI. Program posiada system automatycznego usuwania wypaczania obrazu, a także możliwość utworzenia pliku graficznego z uzyskanych danych, pozwalając na digitalizację zapisu nutowego.
+\end{abstract}
+
+
+
+\introduction
+
+Tu wprowadzenie w tematykę, motywacja, cel pracy, układ rozdziałów.
+
+\input{chapters/chapter1}
+\input{chapters/chapter2}
+\input{chapters/chapter3}
+\input{chapters/chapter4}
+\input{chapters/chapter5}
+
+\summary
+Tu podsumowanie z realizacji założeń, możliwości dalszej pracy
+
+\bibliographystyle{plain}
+\bibliography{literatura}
+
+% spis tabel
+\listoftables
+
+% spis rysunków
+\listoffigures
+
+% spis listingów
+\lstlistoflistings
+
+\end{document}

@@ -1,0 +1,2 @@
+https://mzucker.github.io/2016/08/15/page-dewarping.html
+https://github.com/multiscore/e2e-pianoform/tree/master
