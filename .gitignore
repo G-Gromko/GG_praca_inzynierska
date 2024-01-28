@@ -1,0 +1,11 @@
+__pycache__/
+*.log
+paper/*.pdf
+*.synctex.gz
+*.toc
+*.aux
+*.blg
+*.lof
+*.lol
+*.lot
+*.out
