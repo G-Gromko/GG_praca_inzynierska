@@ -2,6 +2,9 @@ from PIL import Image
 from staff_detection import find_staves
 from dewarp_page import dewarp_page
 from image_segmentation import crop_staves
+import cv2
+import os
+from setup import DEBUG_LEVEL
 
 
 '''
@@ -19,28 +22,38 @@ Broad program overview:
 # ======================================================================================================================================================================
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+def print_list(list):
+  for i in list:
+    print(i)
+
+
 def __main__():
   # example files for testing
-  # file = "test_images/lg-97012964-aug-lilyjazz--page-4.png" # example image of proper music score sheet from DeepScore2 dataset
-  # file = "test_images/maj3_down_m-4-7_distorted.jpg" # example image of distorted staves from Grandstaff dataset
-  # file = "test_images/warp_sim.png" # simulated distorted image of music score
-  file = "test_images/mora_the_spider.png"
+  # file = "test_images/DSC_0920.JPG"
+  # file = "test_images/DSC_0921.JPG"
+  file = "test_images/DSC_0924.JPG"
 
-  img = Image.open(file)
+
+  img = cv2.imread(file, 0)
   print("-- Image loading done --")
-  
-  img = dewarp_page(img) # <-- placeholder function
+  print("-- Loaded image: ", os.path.basename(file), " --")
 
-  # convert original image to RGB bc model was trained on RGB images
-  if img.mode != 'RGB':
-    img = img.convert('RGB')
-
-  staves_positions, staff_line_distance = find_staves(img)
+  staves_positions, staff_line_distance = find_staves(img, 3)
+  if staves_positions == -1:
+    print("-- Something went wrong, terminating --")
+    return
+  if DEBUG_LEVEL >= 1:
+    print_list(staves_positions)
+    
   print("-- Finding positions of staves done --")
+  print("-- Got ", len(staves_positions), " staves with ", end="")
+  print(sum([len(pts) for pts in staves_positions]), " points")
 
-  print(staves_positions, " ", staff_line_distance)
-  cropped_staves = crop_staves(staff_line_distance, staves_positions, img, 2)
-  print("-- Segmentation done --")
+  # img = dewarp_page(img, staves_positions) # <-- placeholder function
+
+  # print(staves_positions, " ", staff_line_distance)
+  # cropped_staves = crop_staves(staff_line_distance, staves_positions, img, 2)
+  # print("-- Segmentation done --")
 
   # print("-- Unwarping done --")
   # print("-- Obtaining semantic information done --")
