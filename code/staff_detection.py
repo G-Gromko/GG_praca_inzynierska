@@ -1,4 +1,3 @@
-from PIL import Image, ImageEnhance
 import numpy as np
 from matplotlib import pyplot as plt
 import tensorflow as tf
@@ -32,7 +31,12 @@ def print_position_list(list, x_coord):
   print()
 
 def enhance_image(img):
-  # simple image enhancer to help analize images
+  # image enhancer to help analize images
+
+  # if image is RGB, convert to grayscale
+  if len(img.shape) == 3:
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
   img = cv2.GaussianBlur(img, (5, 5), 0)
   img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
                                     cv2.THRESH_BINARY, 55, 7)
@@ -122,7 +126,7 @@ def get_staves_positions(x_coord, distance, lines_idx_list = []) -> []:
     if flag and counter == 4:
       counter = 0
       flag = False
-      staff_line_positions.append((x_coord, (lines_idx_list[i-1] + lines_idx_list[i-5]) // 2))
+      staff_line_positions.append([x_coord, (lines_idx_list[i-1] + lines_idx_list[i-5]) // 2])
     elif current_dist >= distance - 2 and current_dist <= distance + 2 and not flag:
       counter = 1
       flag = True
@@ -133,7 +137,7 @@ def get_staves_positions(x_coord, distance, lines_idx_list = []) -> []:
       counter = 0
 
   if flag and counter == 4:
-    staff_line_positions.append((x_coord, (lines_idx_list[i] + lines_idx_list[i-4]) // 2))
+    staff_line_positions.append([x_coord, (lines_idx_list[i] + lines_idx_list[i-4]) // 2])
 
   return staff_line_positions
 
@@ -168,7 +172,7 @@ def get_stave_y_coordinate(distance, positions_list = [[]]):
   return y_coords
 
 
-def make_satves_points_list(in_list, distance):
+def make_staves_points_list(in_list, distance):
   if len(in_list) == 0:
     return -1
   elif sum([len(i) for i in in_list]) == 0:
@@ -286,7 +290,7 @@ def find_staves_positions(img_x, img_y, staff_line_distance, stride = 1, img_arr
     return staves_positions_list
   
 
-def find_staves(img, stride = 2):
+def find_staves_points(img, stride = 2):
   img = enhance_image(img)
   print("-- Image enhancement done --")
 
@@ -302,12 +306,12 @@ def find_staves(img, stride = 2):
   print("-- Staff line distance: ", staff_line_dist)
 
   staves_positions = find_staves_positions(img_x, img_y, staff_line_dist, stride, img_array)
-  print(staves_positions)
+  # print(staves_positions)
   if len(staves_positions) == 0:
     return -1, -1
   else:
     print("-- Finding positions of staves done --")
-    staves_points_list = make_satves_points_list(staves_positions, staff_line_dist)
+    staves_points_list = make_staves_points_list(staves_positions, staff_line_dist)
     if len(staves_points_list) == 0:
       return -1, -1
     print("-- Reformatting of staves position list done --")
