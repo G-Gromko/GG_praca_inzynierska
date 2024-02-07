@@ -1,7 +1,14 @@
-DEBUG_LEVEL = 0 # 0 = nothing, 1 = print only results, 2 = print lots of things, 3 = print all, show enhanced image and plot histograms of probe windows
 
 
-
+DEBUG_LEVEL = 1
+'''
+DEBUG_LEVEL:
+    0 - do nothing
+    1 - save modified images and show dewarping messages
+    2 - lvl 1 and printing list of staves coordinates, position of staves and show cropped images
+    3 - lvl 1&2 and show pyplot histograms of probe windows
+    4 - lvl 1&2&3 and print list of peaks
+'''
 CCOLORS = [
     (255, 0, 0),
     (255, 63, 0),

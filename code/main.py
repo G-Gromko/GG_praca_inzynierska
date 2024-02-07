@@ -1,7 +1,6 @@
-from staff_detection import find_staves_points
+from staff_detection import find_staves_points, find_staves_y_points
 from dewarp_page import dewarp_page
 from image_segmentation import crop_staves
-from utils import print_list
 import cv2
 import os
 from setup import DEBUG_LEVEL
@@ -10,9 +9,9 @@ from setup import DEBUG_LEVEL
 '''
 Broad program overview:
  ✓- load image
- - unwarp image (needs some tweaking)
+ ✓- unwarp image (somewhat done)
  ✓- find staff positions in unwarped image
- ✓- split image to smaller chunks containing desired number of staves (e.g. monophonic score should have one, pianoform score should have two)
+ ✓- split image to smaller chunks containing monophonic staves or grandstaves
  - pipe smaller images to model to retrieve semantic information
  - concatenate obtained **kern files to one
  - convert **kern file to MIDI with verovio
@@ -22,11 +21,17 @@ Broad program overview:
 # ======================================================================================================================================================================
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+def print_list(list):
+  for i in list:
+    print(i)
+
+
 def __main__():
   # example files for testing
-  file = "test_images/DSC_0920.JPG"
-  # file = "test_images/DSC_0921.JPG"
-  # file = "test_images/DSC_0924.JPG"
+  file = "test_images/DSC_0920.JPG" # Photo of music sheet on flat surface
+  # file = "test_images/DSC_0921.JPG" # Photo of music sheet on flat surface
+  # file = "test_images/DSC_0925.JPG" # Photo of music sheet on flat surface
+  # file = "test_images/DSC_0926.JPG" # Photo of music sheet bent to book-like form
 
 
   img = cv2.imread(file)
@@ -35,22 +40,25 @@ def __main__():
   print("-- Image loading done --")
   print("-- Loaded image: ", img_name, " --")
 
-  staves_positions, staff_line_distance = find_staves_points(staff_detect_img, 2)
+  staves_positions, staff_line_distance = find_staves_points(staff_detect_img, img_name, 2)
   if staves_positions == -1:
-    print("-- Something went wrong, aborting --")
-    return
-  if DEBUG_LEVEL >= 1:
-    print_list(staves_positions)
+
+    print("-- First attempt failed, trying alternative mode of finding staves --")
+    staves_positions, staff_line_distance = find_staves_points(staff_detect_img, img_name, 2, True)
+
+    if staves_positions == -1:
+      print("-- Second attempt failed, aborting --")
+      return
     
-  print("-- Finding positions of staves done --")
-  print("-- Got ", len(staves_positions), " staves with ", end="")
-  print(sum([len(pts) for pts in staves_positions]), " points")
+  if DEBUG_LEVEL >= 2:
+    print_list(staves_positions)
 
-  img = dewarp_page(img, img_name, staves_positions)
-  # cropped_staves = crop_staves(staff_line_distance, staves_positions, img, 2)
-  # print("-- Segmentation done --")
+  dewarped_img = dewarp_page(img, img_name, staves_positions)
+  staves_y_pos = find_staves_y_points(dewarped_img, staff_line_distance)
 
-  # print("-- Unwarping done --")
+  print(staves_y_pos)
+
+  cropped_staves = crop_staves(staff_line_distance, staves_y_pos, dewarped_img, False)
   # print("-- Obtaining semantic information done --")
   # print("-- Concatenation of semantic information done --")
   # print("-- Conversion to MIDI done --")

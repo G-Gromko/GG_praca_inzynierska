@@ -1,10 +1,5 @@
-from PIL import Image
-
-import os
-import sys
 import datetime
 import cv2
-from PIL import Image
 import numpy as np
 import scipy.optimize
 from setup import DEBUG_LEVEL
@@ -250,20 +245,23 @@ def optimize_params(name, small, destination_points, span_counts, params):
         parameter_points = project_keypoints(parameter_vector, keypoint_index)
         return np.sum((destination_points - parameter_points)**2)
 
-    print('  initial objective is', objective(params))
+    if DEBUG_LEVEL >= 1:
+        print('  initial objective is', objective(params))
 
     if DEBUG_LEVEL >= 1:
         projpts = project_keypoints(params, keypoint_index)
         display = draw_correspondences(small, destination_points, projpts)
         debug_show(name, 4, 'keypoints before', display)
 
-    print('  optimizing', len(params), 'parameters...')
+    if DEBUG_LEVEL >= 1:
+        print('  optimizing', len(params), 'parameters...')
     start = datetime.datetime.now()
     result = scipy.optimize.minimize(objective, params,
                                   method='Powell')
     end = datetime.datetime.now()
-    print('  optimization took', round((end-start).total_seconds(), 2), 'sec.')
-    print('  final objective is', result.fun)
+    if DEBUG_LEVEL >= 1:
+        print('  optimization took', round((end-start).total_seconds(), 2), 'sec.')
+        print('  final objective is', result.fun)
     params = result.x
 
     if DEBUG_LEVEL >= 1:
@@ -287,7 +285,8 @@ def get_page_dimensions(corners, rough_dimensions, params):
     result = scipy.optimize.minimize(objective, dimensions, method='Powell')
     dimensions = result.x
 
-    print('  got page dimensions', dimensions[0], 'x', dimensions[1])
+    if DEBUG_LEVEL >= 1:
+        print('  got page dimensions', dimensions[0], 'x', dimensions[1])
 
     return dimensions
 
@@ -299,7 +298,8 @@ def remap_image(name, img, page_dimensions, params):
 
     width = round_nearest_multiple(height * page_dimensions[0] / page_dimensions[1], REMAP_DECIMATE)
 
-    print('  output will be {}x{}'.format(width, height))
+    if DEBUG_LEVEL >= 1:
+        print('  output will be {}x{}'.format(width, height))
 
     height_small = height // REMAP_DECIMATE
     width_small = width // REMAP_DECIMATE
@@ -332,16 +332,12 @@ def remap_image(name, img, page_dimensions, params):
     thresh = cv2.adaptiveThreshold(remapped, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
                                    cv2.THRESH_BINARY, ADA_THRESH_WIN_SZ, 25)
 
-    pil_image = Image.fromarray(thresh)
-    pil_image = pil_image.convert('1')
-
-    threshfile = name + '_thresh.png'
-    pil_image.save(threshfile)
-
-    return threshfile
+    return thresh
 
 
 def dewarp_page(img, img_name, staves_positions_in_list):
+    print("-- Page dewarping", end="")
+
     shape = img.shape[:2]
 
     staves_positions = []
@@ -364,5 +360,7 @@ def dewarp_page(img, img_name, staves_positions_in_list):
     page_dimensions = get_page_dimensions(corners, rough_dimensions, params)
 
     outfile = remap_image(img_name, img, page_dimensions, params)
+
+    print(" done --")
 
     return outfile
