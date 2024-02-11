@@ -2,6 +2,10 @@ import cv2
 import os
 
 
+def print_list(list):
+    for i in list:
+        print(i)
+
 def debug_show(name, step, text, display):
     path = '.\img_dump'
     filetext = text.replace(' ', '_')

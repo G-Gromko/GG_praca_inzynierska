@@ -29,6 +29,9 @@
 \usepackage[section]{placeins}
 \usepackage{csquotes}
 \usepackage{abstract}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{pythonhighlight}
 %\usepackage[%backend=biber,refsegment=section,defernumbers=true,]{biblatex}
 
 \lstset { %
@@ -76,7 +79,10 @@ Design and implementation of a program for optical recognition and processing of
 
 \introduction
 
-Tu wprowadzenie w tematykę, motywacja, cel pracy, układ rozdziałów.
+
+Proces digitalizacji zapisów nutowych dzisiaj odbywa się zazwyczaj przy pomocy zdjęć zrobionych przy użyciu przenośnych urządzeń, takich jak telefon wyposażony w aparat, zamiast skanerów. Jak takie podejście jest wygodniejsze dla użytkownika, gdyż w dzisiejszych czasach większość osób ma już przy sobie przez prawie cały czas urządzenia wyposażone w aparat, to niestety wszystkie układy optyczne wprowadzają dystorsję do wykonywanego obrazu, beczkową dla obiektywów szerokokątnych, czy poduszkową dla teleobiektywów, co powoduje niechciane zniekształcenia w zapisywanym obrazie. Kolejną wadą fotografowania dokumentów jest to, iż w przeciwieństwie do skanów, uzyskany obraz nie jest płaski i wyrównany z ewentualnym lekkim przechyleniem, które jest proste do poprawienia, tylko często posiada zniekształcenia we wszystkich wymiarach, jak na przykład gdy fotografuje się stronę książki, co skutkuje nieliniowymi wygięciami przy krawędziach stron. 
+
+Wszelkie wprowadzone zniekształcenia mogą powodować, iż skuteczność wytrenowanego modelu do odczytywania informacji semantycznych zapisu nutowego spada, gdyż jedną z najważniejszych właściwości nuty jest jej relacja do pięciolinii, która to określa wysokość jej tonu, a wprowadzone przez fotografowanie na nierównej powierzchni nut, czy strony z książki, zniekształcenia zmniejszają skuteczność wytrenowanego modelu. Dodatkowo przy zniekształceniach wynikających z wybrzuszenia kartki, nietrywialne staje się podzielenie obrazu tak, by fragment zawierający pięciolinię przekazywany do modelu zawierał tylko interesującą nas część obrazu bez większych fragmentów pozostałej części zdjęcia, które mogą wprowadzać niechciane informacje zmniejszające skuteczność programu.
 
 \input{chapters/chapter1}
 \input{chapters/chapter2}

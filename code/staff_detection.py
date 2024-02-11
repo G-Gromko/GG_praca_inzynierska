@@ -75,15 +75,9 @@ def find_peak(hist_arr = np.array, idx_list = []):
     return staff_line_idx
 
 # find indexes of staff lines
-def filter_out_peaks(max_val, hist_arr = np.array, alt_mode = bool):
+def filter_out_peaks(max_val, hist_arr = np.array):
     cutoff = int(max_val * 0.65)
     peak_idx_list = []
-
-    if alt_mode:
-        for i in range(0, hist_arr.size):
-            if hist_arr[i] <= cutoff:
-                hist_arr[i] = 0
-
 
   # iterate over histogram array, and collect indexes of peaks
     aux_list = []
@@ -102,7 +96,7 @@ def filter_out_peaks(max_val, hist_arr = np.array, alt_mode = bool):
     return peak_idx_list
 
 
-def get_staves_positions(x_coord, distance, lines_idx_list = []) -> []:
+def get_staves_positions(x_coord, distance, lines_idx_list = []):
     if len(lines_idx_list) < 5:
         return []
 
@@ -172,8 +166,16 @@ def make_staves_points_list(in_list, distance):
     return staves_points_list
 
 
+def make_histogram_array(i, img_y, probe_window_size, img_array, probe_window_hist_arr):
+    for k in range(0, img_y-1):
+        for j in range(i, i + probe_window_size):
+            if img_array[k][j] < 200:
+                probe_window_hist_arr[k] += 1
+                
+
 # analizing slices of 1/40th of the image width to find staff line distance for further analisis of the image
-def find_staff_line_distance(img_x, img_y, img_array = np.array, alt_mode = bool):
+def find_staff_line_distance(img = np.array):
+    img_y, img_x = img.shape[:2]
     probe_window_size = img_x // 40
     probe_window_start_idx = img_x // 5
     probe_window_end_idx = img_x - probe_window_start_idx
@@ -182,11 +184,7 @@ def find_staff_line_distance(img_x, img_y, img_array = np.array, alt_mode = bool
     # iterate probe window over image, create histograms and get from them positions of staves
     for i in range(probe_window_start_idx, img_x, probe_window_end_idx):
 
-    # count black pixels in probe window rows
-        for j in range(i, i + probe_window_size):
-            for k in range(0, img_y):
-                if img_array[k][j] < 200:
-                    probe_window_hist_arr[k] += 1
+        make_histogram_array(i, img_y, probe_window_size, img, probe_window_hist_arr)
 
         if DEBUG_LEVEL >= 3:
             plt.plot(probe_window_hist_arr)
@@ -196,7 +194,7 @@ def find_staff_line_distance(img_x, img_y, img_array = np.array, alt_mode = bool
             plt.xlabel("Position on Y axis of the image")
             plt.show()
 
-        peaks_list = filter_out_peaks(probe_window_size, probe_window_hist_arr, alt_mode)
+        peaks_list = filter_out_peaks(probe_window_size, probe_window_hist_arr)
 
         if DEBUG_LEVEL >= 4:
             print("PL: ", end='')
@@ -207,34 +205,30 @@ def find_staff_line_distance(img_x, img_y, img_array = np.array, alt_mode = bool
         if staff_line_distance != 0:
             staff_line_distance_list.append(staff_line_distance)
 
+        probe_window_hist_arr = np.zeros(img_y)
+
     if len(staff_line_distance_list) != 0:
         return sum(staff_line_distance_list) // len(staff_line_distance_list)
     else:
         return -1
   
 
-def find_staves_positions(img_x, img_y, staff_line_distance, stride = 1, img_array = np.array, alt_mode = bool):
+def find_staves_positions(staff_line_distance, stride = 1, img = np.array):
+    img_y, img_x = img.shape[:2]
     probe_window_size = (staff_line_distance * 2) + 5
     # offset for first probe window position to avoid unnecessary analizing of blank space at the edges of the sheet 
     probe_window_start_idx = probe_window_size * 2
     probe_window_hist_arr = np.zeros(img_y)
-    x_coords = []
     staves_positions_list = []
     # iterate probe window over image, create histograms and get from them positions of staves
     for i in range(probe_window_start_idx, img_x, probe_window_size * stride):
         if i > img_x - probe_window_size * 2:
             break
 
-        x_coords.append(i)
-
-        # count black pixels in probe window rows
-        for j in range(i, i + probe_window_size):
-            for k in range(0, img_y):
-                if img_array[k][j] < 200:
-                    probe_window_hist_arr[k] += 1
+        make_histogram_array(i, img_y, probe_window_size, img, probe_window_hist_arr)
 
         # filter obtained histogram data to single positions of lines
-        peaks_list = filter_out_peaks(probe_window_size, probe_window_hist_arr, alt_mode)
+        peaks_list = filter_out_peaks(probe_window_size, probe_window_hist_arr)
 
         # with obtained data, find positions of staves in probe window and append to list of positions
         staves_positions = get_staves_positions(i, staff_line_distance, peaks_list)
@@ -257,29 +251,23 @@ def find_staves_positions(img_x, img_y, staff_line_distance, stride = 1, img_arr
     if len(staves_positions_list) == 0:
         return -1
     else:
-        return staves_positions_list, x_coords
+        return staves_positions_list
   
 
-def find_staves_points(img, img_name, stride = 2, alt_mode = False):
+def find_staves_points(img, img_name, stride = 2):
     print("-- Image enhancement ", end="")
     img = enhance_image(img, img_name)
     print("done --")
 
-    # convert image to array to help in image processing in search of staves
-    print("-- Conversion of image to array ", end="")
-    img_array = tf.keras.utils.img_to_array(img)
-    img_y, img_x = img_array.shape[:2]
-    print("done --")
-
     print("-- Finding staff line distance ", end="")
-    staff_line_dist = find_staff_line_distance(img_x, img_y, img_array, alt_mode)
+    staff_line_dist = find_staff_line_distance(img)
     if staff_line_dist == -1:
         return -1, 0
     print("done --")
     print("-- Staff line distance: ", staff_line_dist)
 
     print("-- Finding positions of staves ", end="")
-    staves_positions, x_coords = find_staves_positions(img_x, img_y, staff_line_dist, stride, img_array, alt_mode)
+    staves_positions = find_staves_positions(staff_line_dist, stride, img)
     if len(staves_positions) == 0:
         return -1, -1
     else:
@@ -317,13 +305,8 @@ def find_staves_y_points(img, staff_line_dist):
     if len(img.shape) == 3:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-    print("-- Conversion of dewarped image to array ", end="")
-    img_array = tf.keras.utils.img_to_array(img)
-    img_y, img_x = img_array.shape[:2]
-    print("done --")
-
     print("-- Finding positions of staves in dewarped image ", end="")
-    staves_positions, x_coords = find_staves_positions(img_x, img_y, staff_line_dist, 5, img_array)
+    staves_positions = find_staves_positions(staff_line_dist, 5, img)
     if len(staves_positions) == 0:
         return -1, -1
     else:
@@ -341,10 +324,3 @@ def find_staves_y_points(img, staff_line_dist):
         
         print("done --")
         return y_coords
-
-    
-        
-
-
-
-
