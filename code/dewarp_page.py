@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import scipy.optimize
 from setup import DEBUG_LEVEL
-from utils import debug_show
+import utils
 
 ROTATION_VECTOR_IDX = slice(0, 3)   # index of rvec in params vector
 TRANSLATION_VECTOR_IDX = slice(3, 6)   # index of translation_vector in params vector
@@ -23,51 +23,6 @@ KAMERA_MATRIX = np.array([
     [0, 0, 1]], dtype=np.float32)
 
 
-def pix2norm(shape, points):
-    height, width = shape[:2]
-    scale = 2.0/(max(height, width))
-    offset = np.array([width, height], dtype=points.dtype).reshape((-1, 1, 2))*0.5
-    return (points - offset) * scale
-
-
-def norm2pix(shape, points, as_integer):
-    height, width = shape[:2]
-    scale = max(height, width)*0.5
-    offset = np.array([0.5*width, 0.5*height], dtype=points.dtype).reshape((-1, 1, 2))
-    rval = points * scale + offset
-    if as_integer:
-        return (rval + 0.5).astype(int)
-    else:
-        return rval
-    
-
-def project_keypoints(pvec, keypoint_index):
-
-    xy_coords = pvec[keypoint_index]
-    xy_coords[0, :] = 0
-
-    return project_xy(xy_coords, pvec)
-
-
-def draw_correspondences(img, dstpoints, projpts):
-
-    display = img.copy()
-    dstpoints = norm2pix(img.shape, dstpoints, True)
-    projpts = norm2pix(img.shape, projpts, True)
-
-    for pts, color in [(projpts, (255, 0, 0)),
-                       (dstpoints, (0, 0, 255))]:
-
-        for point in pts:
-            cv2.circle(display, fltp(point), 15, color, -1, cv2.LINE_AA)
-
-    for point_a, point_b in zip(projpts, dstpoints):
-        cv2.line(display, fltp(point_a), fltp(point_b),
-                 (255, 255, 255), 10, cv2.LINE_AA)
-
-    return display
-    
-
 def get_page_extents(image):
 
     height, width = image.shape[:2]
@@ -79,29 +34,16 @@ def get_page_extents(image):
     xmax = width-margin
     ymax = height-margin
 
-    page = np.zeros((height, width), dtype=np.uint8)
-    cv2.rectangle(page, (xmin, ymin), (xmax, ymax), (255, 255, 255), -1)
+    pagemask = np.zeros((height, width), dtype=np.uint8)
+    cv2.rectangle(pagemask, (xmin, ymin), (xmax, ymax), (255, 255, 255), -1)
 
-    outline = np.array([
+    page_outline = np.array([
         [xmin, ymin],
         [xmin, ymax],
         [xmax, ymax],
         [xmax, ymin]])
 
-    return page, outline
-
-
-def fltp(point):
-    return tuple(point.astype(int).flatten())
-
-
-def round_nearest_multiple(i, factor):
-    i = int(i)
-    rem = i % factor
-    if not rem:
-        return i
-    else:
-        return i + factor - rem
+    return pagemask, page_outline
     
 
 def get_default_params(corners, ycoords, xcoords):
@@ -188,7 +130,7 @@ def keypoints_from_samples(name, image, pagemask, page_outline, staff_points):
     y_dir = np.array([-x_dir[1], x_dir[0]])
 
     pagecoords = cv2.convexHull(page_outline)
-    pagecoords = pix2norm(pagemask.shape, pagecoords.reshape((-1, 1, 2)))
+    pagecoords = utils.pix2norm(pagemask.shape, pagecoords.reshape((-1, 1, 2)))
     pagecoords = pagecoords.reshape((-1, 2))
 
     px_coords = np.dot(pagecoords, x_dir)
@@ -250,8 +192,8 @@ def optimize_params(name, small, destination_points, span_counts, params):
 
     if DEBUG_LEVEL >= 1:
         projpts = project_keypoints(params, keypoint_index)
-        display = draw_correspondences(small, destination_points, projpts)
-        debug_show(name, 4, 'keypoints before', display)
+        display = utils.draw_correspondences(small, destination_points, projpts)
+        utils.debug_show(name, 4, 'keypoints before', display)
 
     if DEBUG_LEVEL >= 1:
         print('  optimizing', len(params), 'parameters...')
@@ -266,8 +208,8 @@ def optimize_params(name, small, destination_points, span_counts, params):
 
     if DEBUG_LEVEL >= 1:
         projpts = project_keypoints(params, keypoint_index)
-        display = draw_correspondences(small, destination_points, projpts)
-        debug_show(name, 5, 'keypoints after', display)
+        display = utils.draw_correspondences(small, destination_points, projpts)
+        utils.debug_show(name, 5, 'keypoints after', display)
 
     return params
 
@@ -294,9 +236,9 @@ def get_page_dimensions(corners, rough_dimensions, params):
 def remap_image(name, img, page_dimensions, params):
 
     height = 0.5 * page_dimensions[1] * OUTPUT_ZOOM * img.shape[0]
-    height = round_nearest_multiple(height, REMAP_DECIMATE)
+    height = utils.round_nearest_multiple(height, REMAP_DECIMATE)
 
-    width = round_nearest_multiple(height * page_dimensions[0] / page_dimensions[1], REMAP_DECIMATE)
+    width = utils.round_nearest_multiple(height * page_dimensions[0] / page_dimensions[1], REMAP_DECIMATE)
 
     if DEBUG_LEVEL >= 1:
         print('  output will be {}x{}'.format(width, height))
@@ -315,7 +257,7 @@ def remap_image(name, img, page_dimensions, params):
     page_xy_coords = page_xy_coords.astype(np.float32)
 
     image_points = project_xy(page_xy_coords, params)
-    image_points = norm2pix(img.shape, image_points, False)
+    image_points = utils.norm2pix(img.shape, image_points, False)
 
     image_x_coords = image_points[:, 0, 0].reshape(page_x_coords.shape)
     image_y_coords = image_points[:, 0, 1].reshape(page_y_coords.shape)
@@ -334,18 +276,24 @@ def remap_image(name, img, page_dimensions, params):
 
     return thresh
 
+def get_norm_pos_list(in_list, shape):
+    norm_list = []
+
+    for stave_pos in in_list:
+        aux = np.array(stave_pos, dtype=np.float32).reshape(-1, 1, 2)
+        aux = utils.pix2norm(shape, aux)
+        norm_list.append(aux)
+
+    return norm_list
+
+
 
 def dewarp_page(img, img_name, staves_positions_in_list):
     print("-- Page dewarping", end="")
 
     shape = img.shape[:2]
 
-    staves_positions = []
-
-    for stave_pos in staves_positions_in_list:
-        aux = np.array(stave_pos, dtype=np.float32).reshape(-1, 1, 2)
-        aux = pix2norm(shape, aux)
-        staves_positions.append(aux)
+    staves_positions = get_norm_pos_list(staves_positions_in_list, shape)
 
     pagemask, page_outline = get_page_extents(img)
 
@@ -359,8 +307,8 @@ def dewarp_page(img, img_name, staves_positions_in_list):
 
     page_dimensions = get_page_dimensions(corners, rough_dimensions, params)
 
-    outfile = remap_image(img_name, img, page_dimensions, params)
+    dewarped_image = remap_image(img_name, img, page_dimensions, params)
 
-    print(" done --")
+    print("-- done --")
 
-    return outfile
+    return dewarped_image

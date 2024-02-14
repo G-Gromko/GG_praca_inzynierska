@@ -1,10 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import tensorflow as tf
 import cv2
 from setup import DEBUG_LEVEL
 from statistics import mode
-from utils import debug_show
+import utils
 
 '''
 Staff detection overview:
@@ -20,17 +19,7 @@ Staff detection overview:
  - return y coordinates of staves and stave line distance
 '''
 
-def print_position_list(list, x_coord):
-    if len(list) == 0:
-        print("(", len(list), ") ", x_coord, ": ---")
-        return
-  
-    print("(", len(list), ") ", list[0][0], ":   ", end="")
 
-    for i in list:
-        print(i[1], ", ", end="")
-
-    print()
 
 def enhance_image(img, img_name):
     # image enhancer to help analize images
@@ -40,12 +29,23 @@ def enhance_image(img, img_name):
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
     img = cv2.GaussianBlur(img, (5, 5), 0)
+
+    if DEBUG_LEVEL >= 3:
+        utils.debug_show(img_name, 0.1, "blurred", img)
+        
     img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
                                         cv2.THRESH_BINARY, 55, 7)
+
+    if DEBUG_LEVEL >= 3:
+        utils.debug_show(img_name, 0.2, "thresholded", img)
+
     img = cv2.erode(img, (5, 5), 3)
 
+    if DEBUG_LEVEL >= 3:
+        utils.debug_show(img_name, 0.3, "eroded", img)
+
     if DEBUG_LEVEL >= 1:
-        debug_show(img_name, 1, "enhanced", img)
+        utils.debug_show(img_name, 1, "enhanced", img)
 
     return img
 
@@ -171,7 +171,6 @@ def make_histogram_array(i, img_y, probe_window_size, img_array, probe_window_hi
         for j in range(i, i + probe_window_size):
             if img_array[k][j] < 200:
                 probe_window_hist_arr[k] += 1
-                
 
 # analizing slices of 1/40th of the image width to find staff line distance for further analisis of the image
 def find_staff_line_distance(img = np.array):
@@ -182,7 +181,7 @@ def find_staff_line_distance(img = np.array):
     probe_window_hist_arr = np.zeros(img_y)
     staff_line_distance_list = []
     # iterate probe window over image, create histograms and get from them positions of staves
-    for i in range(probe_window_start_idx, img_x, probe_window_end_idx):
+    for i in range(probe_window_start_idx, probe_window_end_idx, probe_window_size*6):
 
         make_histogram_array(i, img_y, probe_window_size, img, probe_window_hist_arr)
 
@@ -218,12 +217,11 @@ def find_staves_positions(staff_line_distance, stride = 1, img = np.array):
     probe_window_size = (staff_line_distance * 2) + 5
     # offset for first probe window position to avoid unnecessary analizing of blank space at the edges of the sheet 
     probe_window_start_idx = probe_window_size * 2
+    probe_window_end_idx = img_x - probe_window_start_idx
     probe_window_hist_arr = np.zeros(img_y)
     staves_positions_list = []
     # iterate probe window over image, create histograms and get from them positions of staves
-    for i in range(probe_window_start_idx, img_x, probe_window_size * stride):
-        if i > img_x - probe_window_size * 2:
-            break
+    for i in range(probe_window_start_idx, probe_window_end_idx, probe_window_size * stride):
 
         make_histogram_array(i, img_y, probe_window_size, img, probe_window_hist_arr)
 
@@ -235,7 +233,7 @@ def find_staves_positions(staff_line_distance, stride = 1, img = np.array):
         staves_positions_list.append(staves_positions)
 
         if DEBUG_LEVEL >= 2:
-            print_position_list(staves_positions, i)
+            utils.print_position_list(staves_positions, i)
 
         if DEBUG_LEVEL >= 3:
             plt.plot(probe_window_hist_arr)

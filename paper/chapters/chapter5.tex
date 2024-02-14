@@ -143,7 +143,48 @@ Gdy analiza okienek się zakończy, jeśli lista pozycji nie jest pusta, to jest
 
 \section{Usuwanie wypaczania obrazu}
 
+Proces usuwania wypaczenia obrazu jest dostosowaną pod potrzeby projektu wersją programu opracowanego przez Matt-a Zucker-a.
+
+Dzięki rozwojowi uczenia maszynowego, by uzyskać dużą skuteczność odczytywania informacji z zapisów nutowych, nie jest wymagane przekształcanie zniekształconego obrazu tak, by pięciolinie posiadały blisko idealnie proste linie, co przy użyciu tradycyjnych metod, jak w wypadku wertykalnego zapadania. Jednakże wytrenowane modele uczenia maszynowego dalej preferują by dane które dostają były jak najbliżej ideału, by były w stanie jak najdokładniej wydobyć dane. Dodatkowo używany w tym projekcie model został wytrenowany na danych zawierających pięciolinie zgrupowane klamrą (akoladą) po dwie, reprezentując zapis dla fortepianu, gdzie radzi sobie również bardzo dobrze z wydobywaniem niezbędnych informacji z pojedynczych pięciolinii, jednak nie jest to cała strona zapisana nutami, więc do jego poprawnego działania niezbędna jest odpowiednia segmentacja danego obrazu, na kawałki zrozumiałe dla modelu, co wymaga, by taki obraz dało się w poprawny sposób pociąć na mniejsze tak, by nie zawierały niepotrzebnych części innych pięciolinii, do czego potrzebne jest właśnie usunięcie wypaczeń obecnych na zdjęciu.
+
+Z racji tego, że nuty często znajdują się w folderach, książkach i innych dokumentach piśmienniczych posiadających usztywniany grzbiet łączący wszystkie jego strony ze sobą, to bez usuwania pojedynczych stron, co często bywa destruktywne, nie da się zrobić takiemu zapisowi zdjęcia, na którym nie byłby on zniekształcony. To, wraz z potrzebą podzielenia obrazu na mniejsze kawałki w odpowiedni sposób powoduje, że krok usuwania wypaczeń jest niezbędny.
+
+
+
+\begin{lstlisting}[caption={\pyth|dewarp_page()| - główna funkcja usuwania wypaczania obrazu}, label={dewarp-page}, language=Python]
+def dewarp_page(img, img_name, staves_positions_in_list):
+	shape = img.shape[:2]
+	
+	staves_positions = get_norm_pos_list(staves_positions_in_list, shape)
+	pagemask, page_outline = get_page_extents(img)
+	corners, y_coords, x_coords = keypoints_from_samples(img_name, img, pagemask, page_outline, staves_positions)
+	rough_dimensions, span_counts, params = get_default_params(corners, y_coords, x_coords)
+	destination_points = np.vstack((corners[0].reshape((1, 1, 2)),) + tuple(staves_positions))
+	params = optimize_params(img_name, img, destination_points, span_counts, params)
+	page_dimensions = get_page_dimensions(corners, rough_dimensions, params)
+	dewarped_image = remap_image(img_name, img, page_dimensions, params)
+	
+	return dewarped_image
+\end{lstlisting}
+
 \section{Segmentacja obrazu}
 
 \section{Model głębokiego uczenia do rozpoznawania zapisu nutowego}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
