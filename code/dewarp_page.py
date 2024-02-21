@@ -13,11 +13,10 @@ FOCAL_LENGTH = 1.2       # normalized focal length of camera
 ADA_THRESH_WIN_SZ = 55      # window size for adaptive threshold in reduced px
 
 OUTPUT_ZOOM = 1.0        # how much to zoom output relative to *original* image
-OUTPUT_DPI = 300         # just affects stated DPI of PNG, not appearance
 REMAP_DECIMATE = 16      # downscaling factor for remapping image
 
 # default intrinsic parameter matrix
-KAMERA_MATRIX = np.array([
+CAMERA_MATRIX = np.array([
     [FOCAL_LENGTH, 0, 0],
     [0, FOCAL_LENGTH, 0],
     [0, 0, 1]], dtype=np.float32)
@@ -65,11 +64,11 @@ def get_default_params(corners, ycoords, xcoords):
 
     # estimate rotation and translation from four 2D-to-3D point
     # correspondences
-    _, roatation_vector, translation_vector = cv2.solvePnP(corners_object3d, corners, KAMERA_MATRIX, np.zeros(5))
+    _, rotation_vector, translation_vector = cv2.solvePnP(corners_object3d, corners, CAMERA_MATRIX, np.zeros(5))
 
     span_counts = [len(xc) for xc in xcoords]
 
-    params = np.hstack((np.array(roatation_vector).flatten(),
+    params = np.hstack((np.array(rotation_vector).flatten(),
                         np.array(translation_vector).flatten(),
                         np.array(cubic_slopes).flatten(),
                         ycoords.flatten()) + tuple(xcoords))
@@ -93,7 +92,7 @@ def project_xy(xy_coords, parameter_vector):
 
     objpoints = np.hstack((xy_coords, z_coords.reshape((-1, 1))))
 
-    image_points, _ = cv2.projectPoints(objpoints, parameter_vector[ROTATION_VECTOR_IDX], parameter_vector[TRANSLATION_VECTOR_IDX], KAMERA_MATRIX, np.zeros(5))
+    image_points, _ = cv2.projectPoints(objpoints, parameter_vector[ROTATION_VECTOR_IDX], parameter_vector[TRANSLATION_VECTOR_IDX], CAMERA_MATRIX, np.zeros(5))
 
     return image_points
 
@@ -106,7 +105,7 @@ def project_keypoints(parameter_vector, keypoint_index):
     return project_xy(xy_coords, parameter_vector)
 
 
-def keypoints_from_samples(name, image, pagemask, page_outline, staff_points):
+def keypoints_from_samples(pagemask, page_outline, staff_points):
 
     all_eigen_vectors = np.array([[0.0, 0.0]])
     all_weights = 0
@@ -198,8 +197,7 @@ def optimize_params(name, small, destination_points, span_counts, params):
     if DEBUG_LEVEL >= 1:
         print('  optimizing', len(params), 'parameters...')
     start = datetime.datetime.now()
-    result = scipy.optimize.minimize(objective, params,
-                                  method='Powell')
+    result = scipy.optimize.minimize(objective, params, method='Powell')
     end = datetime.datetime.now()
     if DEBUG_LEVEL >= 1:
         print('  optimization took', round((end-start).total_seconds(), 2), 'sec.')
@@ -233,7 +231,7 @@ def get_page_dimensions(corners, rough_dimensions, params):
     return dimensions
 
 
-def remap_image(name, img, page_dimensions, params):
+def remap_image(img, page_dimensions, params):
 
     height = 0.5 * page_dimensions[1] * OUTPUT_ZOOM * img.shape[0]
     height = utils.round_nearest_multiple(height, REMAP_DECIMATE)
@@ -276,6 +274,7 @@ def remap_image(name, img, page_dimensions, params):
 
     return thresh
 
+
 def get_norm_pos_list(in_list, shape):
     norm_list = []
 
@@ -287,7 +286,6 @@ def get_norm_pos_list(in_list, shape):
     return norm_list
 
 
-
 def dewarp_page(img, img_name, staves_positions_in_list):
     print("-- Page dewarping", end="")
 
@@ -297,7 +295,7 @@ def dewarp_page(img, img_name, staves_positions_in_list):
 
     pagemask, page_outline = get_page_extents(img)
 
-    corners, y_coords, x_coords = keypoints_from_samples(img_name, img, pagemask, page_outline, staves_positions)
+    corners, y_coords, x_coords = keypoints_from_samples(pagemask, page_outline, staves_positions)
 
     rough_dimensions, span_counts, params = get_default_params(corners, y_coords, x_coords)
 
@@ -307,7 +305,7 @@ def dewarp_page(img, img_name, staves_positions_in_list):
 
     page_dimensions = get_page_dimensions(corners, rough_dimensions, params)
 
-    dewarped_image = remap_image(img_name, img, page_dimensions, params)
+    dewarped_image = remap_image(img, page_dimensions, params)
 
     print("-- done --")
 
