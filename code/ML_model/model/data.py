@@ -1,4 +1,3 @@
-import gin
 import os
 import cv2
 import torch
@@ -35,7 +34,6 @@ def batch_preparation_ctc(data):
     return X_train, Y_train, L, T
 
 @logger.catch
-@gin.configurable
 def load_data(partition_file, resize_ratio, use_raw_krn=False, load_distorted=False, extension=".bekrn"):
     X = []
     Y = []
@@ -126,7 +124,6 @@ class PoliphonicDataset(Dataset):
     def get_i2w(self):
         return self.i2w
 
-@gin.configurable
 def load_dataset(train_path=None, val_path=None, test_path=None, corpus_name=None):
     train_dataset = PoliphonicDataset(partition_file=train_path)
     val_dataset = PoliphonicDataset(partition_file=val_path)

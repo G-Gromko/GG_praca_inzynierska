@@ -1,5 +1,4 @@
 import os
-import gin
 import fire
 import wandb
 
@@ -12,7 +11,6 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
 
-@gin.configurable
 def main(train_path=None, val_path=None, test_path=None, encoding=None, model_name=None):
     outpath = f"out/GrandStaff_{encoding}/{model_name}"
     os.makedirs(outpath, exist_ok=True)
@@ -48,9 +46,5 @@ def main(train_path=None, val_path=None, test_path=None, encoding=None, model_na
     trainer.test(model, test_dataloader)
     wandb.finish()
 
-def launch(config):
-    gin.parse_config_file(config)
-    main()
-
 if __name__ == "__main__":
-    fire.Fire(launch)
+    main()

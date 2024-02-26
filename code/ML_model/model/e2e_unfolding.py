@@ -3,7 +3,6 @@ import torch.nn.functional as F
 import torch
 import random
 from torchinfo import summary
-import gin
 from loguru import logger
 
 class DepthSepConv2D(nn.Module):
@@ -146,68 +145,43 @@ class Encoder(nn.Module):
 
         return x
     
-class PositionalEncoding1D(nn.Module):
+class RecurrentScoreUnfolding(nn.Module):
 
-    def __init__(self, dim, len_max, device):
-        super(PositionalEncoding1D, self).__init__()
-        self.len_max = len_max
-        self.dim = dim
-        self.pe = torch.zeros((1, dim, len_max), device=device, requires_grad=False)
-
-        div = torch.exp(-torch.arange(0., dim, 2) / dim * torch.log(torch.tensor(10000.0))).unsqueeze(1)
-        l_pos = torch.arange(0., len_max)
-        self.pe[:, ::2, :] = torch.sin(l_pos * div).unsqueeze(0)
-        self.pe[:, 1::2, :] = torch.cos(l_pos * div).unsqueeze(0)
-
-    def forward(self, x, start=0):
-        if isinstance(start, int):
-            return x + self.pe[:, :, start:start+x.size(2)].to(x.device)
-        else:
-            for i in range(x.size(0)):
-                x[i] = x[i] + self.pe[0, :, start[i]:start[i]+x.size(2)]
-            return 
-
-
-class TransformerScoreUnfolding(nn.Module):
-
-    def __init__(self, out_cats, max_len):
-        super(TransformerScoreUnfolding, self).__init__()
-        self.dummy_param = nn.Parameter(torch.empty(0))
-        self.pos_encoding = PositionalEncoding1D(dim=512, len_max=max_len, device=self.dummy_param.device)
-        transf_layer = nn.TransformerEncoderLayer(d_model=512, nhead=8, dim_feedforward=1024, batch_first=True)
-        self.dec_transf = nn.TransformerEncoder(transf_layer, num_layers=1)
+    def __init__(self, out_cats):
+        super(RecurrentScoreUnfolding, self).__init__()
+        self.dec_lstm = nn.LSTM(input_size=512, hidden_size=256, bidirectional=True, batch_first=True)
         self.out_dense = nn.Linear(in_features=512, out_features=out_cats)
 
     def forward(self, inputs):
         x = inputs
         b, c, h, w = x.size()
         x = x.reshape(b, c, h*w)
-        x = self.pos_encoding(x)
         x = x.permute(0,2,1)
-        x = self.dec_transf(x)
+        x, _ = self.dec_lstm(x)
         x = self.out_dense(x)
         x = x.permute(1,0,2)
         return F.log_softmax(x, dim=2)
-    
-class E2EScore_CNNT(nn.Module):
 
-    def __init__(self, in_channels, out_cats, max_len, pretrain_path=None):
-        super(E2EScore_CNNT, self).__init__()
+
+class E2EScore_CRNN(nn.Module):
+
+    def __init__(self, in_channels, out_cats, pretrain_path=None):
+        super(E2EScore_CRNN, self).__init__()
         self.encoder = Encoder(in_channels=in_channels)
 
         if pretrain_path != None:
             print(f"Loading weights from {pretrain_path}")
             self.encoder.load_state_dict(torch.load(pretrain_path), strict=True)
 
-        self.decoder = TransformerScoreUnfolding(out_cats=out_cats, max_len=max_len)
-    
+        self.decoder = RecurrentScoreUnfolding(out_cats=out_cats)
+
     def forward(self, inputs):
         x = self.encoder(inputs)
         x = self.decoder(x)
         return x
     
 def get_cnntrf_model(maxwidth, maxheight, in_channels, out_size, maxlen=None):
-    model = E2EScore_CNNT(in_channels=in_channels, out_cats=out_size, max_len=maxlen)
+    model = E2EScore_CRNN(in_channels=in_channels, out_cats=out_size, max_len=maxlen)
     summary(model, input_size=[(1,in_channels,maxheight,maxwidth)], dtypes=[torch.float])
     
     return model
