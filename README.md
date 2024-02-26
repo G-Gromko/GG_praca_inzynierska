@@ -9,19 +9,19 @@ Zbiór danych GrandStaff do uczenia modelu znajduje się na stronie: https://sit
 
 Z racji braku pików partycjonowania danych do uczenia i testowania zawartych w zbiorze, a niebędnych do działania, zbiór po pobraniu należy rozpakować lokalnie na komputerze do wybranego katalogu, po czym uruchomić skrypt make_dataset_partitions.py, podając mu ścieżkę do katalogu rozpakowanego zbioru danych, którego struktura wewnętrzna powinna się prezentować następująco:
 
-├ beethoven
-├ chopin
-├ hummel
-├ joplin
-├ mozart
-└ scarlatti-d
+├ beethoven<br />
+├ chopin<br />
+├ hummel<br />
+├ joplin<br />
+├ mozart<br />
+└ scarlatti-d<br />
 
 Gdy skrypt make_dataset_partitions.py zakończy swoje działanie, do powyższych katalogów powinien dołączyć katalog partitions z wewnętrzną strukturą:
 
-partitions
-  ├ test.txt
-  ├ train.txt
-  └ val.txt
+partitions<br />
+&ensp;├ test.txt<br />
+&ensp;├ train.txt<br />
+&ensp;└ val.txt<br />
 
 Następnie katalogi beethoven, chopin, hummel, joplin, mozart, partitions oraz scrlatti-d należy zapakować do pliku grandstaff.zip. Utworzone archiwum należy umieścić na Dysku Google konta połączonego z Google Colab.
 
