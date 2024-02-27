@@ -34,7 +34,7 @@ def batch_preparation_ctc(data):
     return X_train, Y_train, L, T
 
 @logger.catch
-def load_data(partition_file, resize_ratio, use_raw_krn=False, load_distorted=False, extension=".bekrn"):
+def load_data(partition_file, resize_ratio, load_distorted=True, extension=".krn"):
     X = []
     Y = []
     with open(partition_file) as partfile:

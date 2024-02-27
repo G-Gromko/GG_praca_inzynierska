@@ -11,7 +11,7 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
 
-def main(train_path=None, val_path=None, test_path=None, encoding=None, model_name=None):
+def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_name="CRNN"):
     outpath = f"out/GrandStaff_{encoding}/{model_name}"
     os.makedirs(outpath, exist_ok=True)
     os.makedirs(f"{outpath}/hyp", exist_ok=True)
@@ -32,16 +32,16 @@ def main(train_path=None, val_path=None, test_path=None, encoding=None, model_na
 
     wandb_logger = WandbLogger(project='E2E_Pianoform', name=model_name)
     
-    early_stopping = EarlyStopping(monitor='val_SER', min_delta=0.01, patience=5, mode="min", verbose=True)
+    early_stopping = EarlyStopping(monitor='val_SER', min_delta=0.01, patience=5, mode="min", verbose=False)
     
     checkpointer = ModelCheckpoint(dirpath=f"weights/{encoding}/{model_name}", filename=f"{model_name}", 
                                    monitor="val_SER", mode='min',
-                                   save_top_k=1, verbose=True)
+                                   save_top_k=1, verbose=False)
 
-    trainer = Trainer(max_epochs=10000, logger=wandb_logger, callbacks=[checkpointer, early_stopping])
+    trainer = Trainer(max_epochs=10, logger=wandb_logger, callbacks=[checkpointer, early_stopping])
     
     trainer.fit(model, train_dataloader, val_dataloader)
-
+    
     model = LighntingE2EModelUnfolding.load_from_checkpoint(checkpointer.best_model_path, model=torchmodel)
     trainer.test(model, test_dataloader)
     wandb.finish()
