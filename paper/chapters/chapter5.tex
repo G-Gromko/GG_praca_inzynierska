@@ -143,7 +143,7 @@ Gdy analiza okienek się zakończy, jeśli lista pozycji nie jest pusta, to jest
 
 \section{Usuwanie wypaczenia obrazu}
 
-Proces usuwania wypaczenia obrazu jest dostosowaną pod potrzeby projektu wersją programu opracowanego przez Matt-a Zucker-a.
+Proces usuwania wypaczenia obrazu jest dostosowaną pod potrzeby projektu wersją programu opracowanego przez Matta Zuckera.
 
 Dzięki rozwojowi uczenia maszynowego, by uzyskać dużą skuteczność odczytywania informacji z zapisów nutowych, nie jest wymagane przekształcanie zniekształconego obrazu tak, by pięciolinie posiadały blisko idealnie proste linie, co przy użyciu tradycyjnych metod, jak w wypadku wertykalnego zapadania. Jednakże wytrenowane modele uczenia maszynowego dalej preferują by dane które dostają były jak najbliżej ideału, by były w stanie jak najdokładniej wydobyć dane. Dodatkowo używany w tym projekcie model został wytrenowany na danych zawierających pięciolinie zgrupowane klamrą (akoladą) po dwie, reprezentując zapis dla fortepianu, gdzie radzi sobie również bardzo dobrze z wydobywaniem niezbędnych informacji z pojedynczych pięciolinii, jednak nie jest to cała strona zapisana nutami, więc do jego poprawnego działania niezbędna jest odpowiednia segmentacja danego obrazu, na kawałki zrozumiałe dla modelu, co wymaga, by taki obraz dało się w poprawny sposób pociąć na mniejsze tak, by nie zawierały niepotrzebnych części innych pięciolinii, do czego potrzebne jest właśnie usunięcie wypaczeń obecnych na zdjęciu.
 
@@ -453,12 +453,356 @@ Gdy już wszystkie niezbędne parametry są określone, tworzony jest obraz w sk
 Po zakończonym remapowaniu, otrzymany obraz jest progowany adaptacyjnie, by otrzymać wartości binarne na obrazie, bez cieni i niepotrzebnych do analizy gradientów. Tak zmodyfikowany obraz pozbawiony wypaczenia jest zwracany.
 
 
-\section{Model głębokiego uczenia do rozpoznawania zapisu nutowego}
 
 
 
 
+\section{Model głębokiego uczenia do rozpoznawania zapisu nutowego} \label{Model}
+Użyty model głębokiego uczenia został opracowany przez Antonio Ríosa-Vilę et. al.\cite{Rios-Vila2023}. 
 
+\begin{lstlisting}[caption={\pyth|E2EScore_CRNN| - klasa modelu głębokiego uczenia do rozpoznawania zapisu nutowego}, label={E2E-CRNN}]
+class E2EScore_CRNN(nn.Module):
+
+	def __init__(self, in_channels, out_cats):
+		super(E2EScore_CRNN, self).__init__()
+		self.encoder = Encoder(in_channels=in_channels)		
+		self.decoder = RecurrentScoreUnfolding(out_cats=out_cats)
+	
+	def forward(self, inputs):
+		x = self.encoder(inputs)
+		x = self.decoder(x)
+		return x
+\end{lstlisting}
+
+Posiada on architekturę enkoder-dekoder CRNN (ang. \textit{Convolutional Recurent Neural Network}), gdzie enkoder jest w pełni konwolucyjną siecią neuronową, natomiast dekoder jest rekurencyjną siecią neuronową LSTM (ang. \textit{Long Short-Term Memory}).
+
+Klasa modelu, dziedzicząca po klasie \pyth|Module| biblioteki \textit{PyTorch}, jest inicjalizowana poprzez podanie do konstruktora liczby kanałów wejściowych, oraz liczby kategorii wyjściowych. Wartości tych argumentów są używane by utworzyć obiekty enkodera, któremu podawana jest liczba kanałów wejściowych, oraz dekodera, reprezentowanego przez klasę \pyth|RecurrentScoreUnfolding|, który dostaje liczbę kategorii wyjściowych.
+
+W metodzie \pyth|forward| na podstawie danych wejściowych tworzona jest przez enkoder zmienna \pyth|x|, która następnie jest przekazywana do dekodera, po czym wynik tej operacji jest zwracany.
+
+
+
+\subsection{Realizacja enkodera modelu głębokiego uczenia} \label{Encoder}
+\begin{lstlisting}[caption={\pyth|Encoder| - klasa enkodera modelu głębokiego uczenia}, label={encoder}]
+class Encoder(nn.Module):
+	
+	def __init__(self, in_channels, dropout=0.4):
+		super(Encoder, self).__init__()
+	
+		self.conv_blocks = nn.ModuleList([
+			ConvolutionalBlock(in_c=in_channels, out_c=32, stride=(1,1), dropout=dropout),
+			ConvolutionalBlock(in_c=32, out_c=64, stride=(2,2), dropout=dropout),
+			ConvolutionalBlock(in_c=64, out_c=128, stride=(2,2), dropout=dropout),
+			ConvolutionalBlock(in_c=128, out_c=256, stride=(2,2), dropout=dropout),
+			ConvolutionalBlock(in_c=256, out_c=512, stride=(2,1), dropout=dropout)
+		])
+		
+		self.dscblocks = nn.ModuleList([
+			DSCBlock(in_c=512, out_c=512, stride=(1,1), dropout = dropout),
+			DSCBlock(in_c=512, out_c=512, stride=(1,1), dropout = dropout),
+			DSCBlock(in_c=512, out_c=512, stride=(1,1), dropout = dropout),
+			DSCBlock(in_c=512, out_c=512, stride=(1,1), dropout = dropout)
+		])
+	
+	def forward(self, x):
+		for layer in self.conv_blocks:
+			x = layer(x)
+	
+		for layer in self.dscblocks:
+			xt = layer(x)
+			x = x + xt if x.size() == xt.size() else xt
+	
+		return x
+\end{lstlisting}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=15cm]{images/encoder-model.png}
+	\caption{Wizualizacja struktury enkodera modelu uczenia głębokiego. Źródło: \cite{Rios-Vila2023}}
+	\label{fig:encoder-model-vis}
+\end{figure}
+
+Enkoder, klasą dziedziczącą po \pyth|Module| biblioteki \textit{PyTorch}, składa się z następujących po sobie blokach konwolucyjnych, których kanały wyjściowe zwiększają się od 32 do 512, następnie informacje przekazywane są do następujących po sobie separujących wgłębnie bloków konwolucyjnych (ang. Depthwise Separable Convolution Blocks), których liczba kanałów wejściowych i wyjściowych zawsze wynosi 512.
+
+Pierwszy blok konwolucyjny posiada krok o rozmiarze $1 \times 1$, bloki od drugiego do czwartego $2\times 2$, natomiast ostatni $2 \times 1$. Rozmiar kroku w przypadku wgłębnych bloków konwolucyjnych jest dla nich zawsze taki sam i wynosi $1 \times 1$.
+
+Dzięki takiej architekturze możliwe jest przekształcenie wiadomości zawartych na obrazie tak, by zamiast zajmować dwuwymiarową przestrzeń, posiadały one formę pojedynczej linii, która jest odczytywana jako pojedyncza linijka przez dekoder. Podejście to, nazywane rozwijaniem dokumentu, zostało zaproponowane przez Denisa Coquenet'a, w pracy dotyczącej wieloliniowego odczytywania pisma odręcznego bez wcześniejszej segmentacji\cite{Coquenet2021}, w którym model uczy się rozwijać linie tekstu sekwencji od góry do dołu, by potem je odczytać sekwencyjnie w ich kolejności czytania. 
+
+Enkoder zaimplementowany w tym modelu pobiera obraz wejściowy $X \in \mathbb{R}^{C\times H \times W}$ i zwraca mapę cech $f \in \mathbb{R}^{512, \frac{W}{16}\times\frac{H}{8}}$, gdzie $C$ oznacza liczbę filtrów używanych przez warstwy konwolucyjne modelu, $W$ szerokość obrazu oraz $H$ jego wysokość. Można to rozumieć jako proces konkatenacji regionów par polifonicznych, którego wizualizacja jest przedstawiona na rysunku \ref{fig:rowijanie-nut}.
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=15cm]{images/rozwijanie-nut.png}
+	\caption{Wizualizacja procesu konkatenacji regionów par polifonicznych. Źródło: \cite{Rios-Vila2023}}
+	\label{fig:rowijanie-nut}
+\end{figure}
+
+
+Pozwala to na transkrypcję nut w oryginalnym formacie KERN, gdyż takie ułożenie odpowiada strukturze tego formatu, mianowicie informacje są zapisywane od góry do dołu i od lewej do prawej.
+
+Funkcja \pyth|forward()| przechodzi najpierw pętlą przez wszystkie dwuwymiarowe warstwy konwolucyjne, podając pierwszej dane wejściowe, zaś każdej kolejnej przekazując zmodyfikowane dane przez warstwę poprzednią. Następnie w pętli przechodzi ona po wszystkich warstwach separujących wgłębnie sieci konwolucyjnych, gdzie w każdym kroku pętli wynik działania warstwy jest dodawany do wcześniejszego, o ile ich rozmiary są sobie równe, jeśli nie, to zmienna \pyth|x| jest ustalana jedynie na wynik działania warstwy. Gdy dane wejściowe przejdą przez obie pętle, zostają zwrócone.
+
+
+
+\subsubsection{Realizacja bloku konwolucyjnego} \label{ConvBlock}
+\begin{lstlisting}[caption={\pyth|ConvolutionalBlock| - klasa bloku konwolucyjnego}, label={convblock}]
+class ConvolutionalBlock(nn.Module):
+def __init__(self, in_c, out_c, stride=(1,1), kernel=3, activation=nn.ReLU, dropout=0.4):
+	super(ConvolutionalBlock, self).__init__()
+	
+		self.activation = activation()
+		self.conv1 = nn.Conv2d(in_channels=in_c, out_channels=out_c, kernel_size=kernel, padding=kernel//2)
+		self.conv2 = nn.Conv2d(in_channels=out_c, out_channels=out_c, kernel_size=kernel, padding=kernel//2)
+		self.conv3 = nn.Conv2d(in_channels=out_c, out_channels=out_c, kernel_size=(3,3), padding=(1,1), stride=stride)
+		self.normLayer = nn.InstanceNorm2d(num_features=out_c, eps=0.001, momentum=0.99, track_running_stats=False)
+		self.dropout = MixDropout(dropout_prob=dropout, dropout_2d_prob=dropout/2)
+	
+	def forward(self, inputs):
+		pos = random.randint(1,3)
+		
+		x = self.conv1(inputs)
+		x = self.activation(x)
+		
+		if pos == 1:
+			x = self.dropout(x)
+		
+		x = self.conv2(x)
+		x = self.activation(x)
+		
+		if pos == 2:
+			x = self.dropout(x)
+		
+		x = self.normLayer(x)
+		x = self.conv3(x)
+		x = self.activation(x)
+		
+		if pos == 3:
+			x = self.dropout(x)
+		
+		return x
+\end{lstlisting}
+
+Klasa bloku konwolucyjnego składa się z funkcji aktywacji, będącą funkcją klasy bazowej \pyth|Module| biblioteki \textit{PyTorch}, trzech dwuwymiarowych warstw konwolucyjnych, gdzie pierwsza i druga posiadają rozmiar jądra jak przekazany przy inicjalizacji klasy, oraz padding wielkości wartości całkowitej połowy jądra, zaś trzecia warstwa ma ustawiony rozmiar jądra na $3\times 3$ i padding na $1 \times 1$ oraz jako jedyna ma ustawiany krok na wielkość przekazaną jako argument konstruktora. Kolejną warstwą tego bloku jest warstwa normalizacji instancji, inicjowana liczbą cech równą wielkości kanałów wyjściowych, $\epsilon = 0.001$ oraz momentem równym $0.99$. Ostatnią inicjowaną warstwą jest usuwanie mieszane, z argumentami prawdopodobieństwa usunięcia równym \pyth|dropout| i prawdopodobieństwem dwuwymiarowego usunięcia równym połowie \pyth|dropout|.
+
+Metoda \pyth|forward| na początku swojego działania losuje liczbę całkowitą z zakresu $<1, 3>$, używaną do losowego określenia położenia w łańcuchu wydarzeń, za którą aktywacją dwuwymiarowych warstw konwolucyjnych następuje wywołanie \pyth|droput|.
+
+Następnie przekazuje dane wejściowe do pierwszej warstwy konwolucyjnej, po której następuje aktywacja, druga warstwa otrzymuje jako dane wejściowe wyjście warstwy pierwszej, gdzie po niej również następuje aktywacja. Przed trzecią warstwą konwolucji wykonywana jest normalizacja instancji, której wynik jest przekazywany trzeciej warstwie, po której również następuje aktywacja. Gdy dane wejściowe przejdą przez ten proces, zostają one zwrócone. 
+
+
+\subsubsection{Realizacja separującego wgłębnie bloku konwolucyjnego} \label{DSCBlock}
+\begin{lstlisting}[caption={\pyth|DSCBlock| - klasa głębokiego separującego bloku konwolucyjnego}, label={dscblock}]
+class DSCBlock(nn.Module):
+
+	def __init__(self, in_c, out_c, stride=(2, 1), activation=nn.ReLU, dropout=0.4):
+		super(DSCBlock, self).__init__()
+		
+		self.activation = activation()
+		self.conv1 = DepthSepConv2D(in_c, out_c, kernel_size=(3, 3))
+		self.conv2 = DepthSepConv2D(out_c, out_c, kernel_size=(3, 3))
+		self.conv3 = DepthSepConv2D(out_c, out_c, kernel_size=(3, 3), stride=stride)
+		self.norm_layer = nn.InstanceNorm2d(num_features=out_c, eps=0.001, momentum=0.99, track_running_stats=False)
+		self.dropout = MixDropout(dropout_prob=dropout, dropout_2d_prob=dropout/2)
+	
+	def forward(self, x):
+		pos = random.randint(1, 3)
+		
+		x = self.conv1(x)
+		x = self.activation(x)
+		
+		if pos == 1:
+			x = self.dropout(x)
+		
+		x = self.conv2(x)
+		x = self.activation(x)
+		
+		if pos == 2:
+			x = self.dropout(x)
+		
+		x = self.norm_layer(x)
+		x = self.conv3(x)
+		
+		if pos == 3:
+			x = self.dropout(x)
+		
+		return x
+\end{lstlisting}
+
+Klasa separującego wgłębnie bloku konwolucyjnego składa się z funkcji aktywacji, będącą funkcją klasy bazowej \pyth|Module| biblioteki \textit{PyTorch}, trzech dwuwymiarowych wgłębnie separujących warstw konwolucyjnych, każda posiadająca jądro wielkości $3 \times 3$, natomiast tylko trzecia warstwa ma ustawiony odmienny rozmiar kroku, który zamiast domyślnego rozmiaru $1 \times 1$ posiada wielkość $2 \times 1$. Kolejnym elementem składowym jest warstwa normalizacji instancji, inicjowana liczbą cech równą wielkości kanałów wyjściowych, $\epsilon = 0.001$ oraz momentem wynoszącym $0.99$, natomiast ostatnią inicjowaną warstwą jest mieszane usuwanie, z argumentami prawdopodobieństwa usunięcia równym \pyth|dropout| i prawdopodobieństwem dwuwymiarowego usunięcia równym połowie \pyth|dropout|.
+
+Metoda \pyth|forward()| na początku działania losuje po której warstwie konwolucji zostanie wykonane mieszane usuwanie, następnie dane wejściowe przekazywane są pierwszej warstwie konwolucji, po której następuje aktywacja, podobnie dzieje się z warstwą drugą, natomiast przed trzecią konwolucją dokonywana jest normalizacja instancji, dopiero po której przekazuje się dane przez nią przetworzone do następnej warstwy, po której nie następuje, w przeciwieństwie do warstw poprzednich, aktywacja. Tak przetworzone dane następnie zostają zwrócone.
+
+
+
+\subsubsection{Realizacja usuwania mieszanego}
+
+\begin{lstlisting}[caption={\pyth|MixDroput| - klasa usuwania mieszanego}, label={mix-dropout}]
+class MixDropout(nn.Module):
+	def __init__(self, dropout_prob=0.4, dropout_2d_prob=0.2):
+		super(MixDropout, self).__init__()
+		
+		self.dropout = nn.Dropout(dropout_prob)
+		self.dropout2D = nn.Dropout2d(dropout_2d_prob)
+	
+	def forward(self, inputs):
+		if random.random() < 0.5:
+			return self.dropout(inputs)
+		return self.dropout2D(inputs)
+\end{lstlisting}
+
+By zapobiec nadmiernego dopasowania modelu uczenia maszynowego, ważne jest używanie w jego konstrukcji funkcji zerujących niektóre węzły modelu, gdzie w przedstawianym modelu zostało to zrealizowane w sposób mieszany, określany losowo co do zastosowanej metody przy każdym wywołaniu.
+
+Klasa usuwania mieszanego jest inicjalizowana w konstruktorze poprzez podanie prawdopodobieństwa usunięcia węzłów oraz dwuwymiarowego prawdopodobieństwa usunięcia węzłów, które są przekazywane tworzonym obiektom odpowiadającym im klas \pyth|Dropout| oraz \pyth|Dropout2d| biblioteki \textit{PyTorch}.
+
+W funkcji \pyth|forward| losowo określane jest, z równym prawdopodobieństwem, czy nastąpi zerowanie losowych elementów poprzez wywołanie \pyth|dropout|, czy losowe zerowanie całych kanałów tensora wejściowego przy użyciu \pyth|dropout2D|. Wynik działania jest następnie zwracany. 
+
+
+\subsubsection{Realizacja wgłębnie separującej konwolucji}
+
+\begin{lstlisting}[caption={\pyth|DepSepConv2D| - klasa wgłębnie separującej konwolucji dwuwymiarowej}, label={DepSepConv}]
+class DepthSepConv2D(nn.Module):
+	def __init__(self, in_channels, out_channels, kernel_size, activation=None, padding=True, stride=(1,1), dilation=(1,1)):
+		super(DepthSepConv2D, self).__init__()
+	
+		self.padding = None
+		
+		padding = [int((k-1)/2) for k in kernel_size]
+		
+		if kernel_size[0] % 2 == 0 or kernel_size[1] % 2 == 0:
+			padding_h = kernel_size[1] - 1
+			padding_w = kernel_size[0] - 1
+			self.padding = [padding_h//2, padding_h-padding_h//2, padding_w//2, padding_w-padding_w//2]
+			padding = (0, 0)
+		
+		self.depth_conv = nn.Conv2d(in_channels=in_channels, out_channels=in_channels, kernel_size=kernel_size, dilation=dilation, stride=stride, padding=padding, groups=in_channels)
+		self.point_conv = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, dilation=dilation, kernel_size=(1,1))
+		self.activation = activation
+	
+	def forward(self, inputs):
+		x = self.depth_conv(inputs)
+		if self.padding:
+			x = F.pad(x, self.padding)
+		if self.activation:
+			x = self.activation(x)
+		
+		x = self.point_conv(x)
+		
+		return x
+\end{lstlisting}
+
+
+Wgłębnie separujące konwolucje, wprowadzone przez Laurenta Sifre\cite{Sifre2014}, składają się z dwóch etapów: wgłębnej konwolucji, przechodzącej po pojedynczym kanale na raz, oraz konwolucji punktowej, która przechodzi po wszystkich kanałach na raz z rozmiarem jądra wynoszącym $1 \times 1$, gdzie tradycyjna konwolucja przechodzi po wszystkich kanałach jednocześnie. Pomimo pozornej większej złożoności architektury, pozwala to na znaczne zaoszczędzenie pamięci i obliczeń kosztem niewielkiej straty dokładności.
+
+W konstruktorze klasy ustalana jest wielkość paddingu jako wartość całkowita połowy wielkości wymiarów jądra pomniejszonych o 1. Jeśli zaś któryś z wymiarów jądra jest parzysty, tworzony jest tensor o wymiarach $\frac{padding_h}{2} \times padding_h - \frac{padding_h}{2} \times \frac{padding_w}{2} \times padding_w - \frac{padding_w}{2}$, gdzie $padding_h$ jest wysokością jądra pomniejszoną o $1$, a $padding_w$ jest szerokością jądra pomniejszoną o $1$. Uzyskany w ten sposób tensor jest polem klasy. Natomiast w tym przypadku zmienna \pyth|padding| przekazywana do konstruktora warstwy wgłębnej konwolucji jest ustalana na wartość $0 \times 0$.
+
+Gdy wielkości paddingu zostają ustalone, inicjalizowane jest pole \pyth|depth_conv|, będące obiektem klasy \pyth|Conv2d| biblioteki \textit{PyTorch}, odpowiedzialne za wgłębną konwolucję, gdzie liczba kanałów wejściowych, wyjściowych oraz grup jest równa argumentowi konstruktora \pyth|in_channels|. Rozmiar jądra, dylatacja i krok są określone przez odpowiadające im argumenty konstruktora.
+
+Następnie tworzona jest warstwa konwolucji punktowej \pyth|point_conv|, będąca obiektem klasy \pyth|Conv2d| biblioteki \textit{PyTorch}, inicjowana poprzez odpowiednie argumenty konstruktora, oraz rozmiarem jądra określonym na $1 \times 1$.
+
+Metoda \pyth|forward| najpierw wykonuje wgłębną konwolucję na danych wejściowych, i jeśli podczas inicjalizacji pole \pyth|padding| zostało określone, wykonywana jest operacja \pyth|F.pad|, nakładająca obliczony padding na tensor wejściowy. Następnie jeśli aktywacja została określona, jest ona wykonywana. Ostatnim krokiem wykonywanym na danych jest konwolucja punktowa, której wynik jest zwracany.
+
+\subsection{Realizacja dekodera modelu głębokiego uczenia} \label{Decoder}
+\begin{lstlisting}[caption={\pyth|RecurrentScoreUnfolding| - klasa dekodera modelu głębokiego uczenia}, label={decoder}]
+class RecurrentScoreUnfolding(nn.Module):
+
+	def __init__(self, out_cats):
+		super(RecurrentScoreUnfolding, self).__init__()
+		self.dec_lstm = nn.LSTM(input_size=512, hidden_size=256, bidirectional=True, batch_first=True)
+		self.out_dense = nn.Linear(in_features=512, out_features=out_cats)
+	
+	def forward(self, inputs):
+		x = inputs
+		b, c, h, w = x.size()
+		x = x.reshape(b, c, h*w)
+		x = x.permute(0,2,1)
+		x, _ = self.dec_lstm(x)
+		x = self.out_dense(x)
+		x = x.permute(1,0,2)
+		return F.log_softmax(x, dim=2)
+\end{lstlisting}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=15cm]{images/decoder-model.png}
+	\caption{Wizualizacja struktury dekodera modelu uczenia głębokiego. Źródło: \cite{Rios-Vila2023}}
+	\label{fig:decoder-model-vis}
+\end{figure}
+
+Dekoder modelu składa się z pojedynczej warstwy LSTM z biblioteki \textit{PyTorch}, inicjalizowanej wielkością wejścia równą $512$, liczbą cech stanu ukrytego równą $256$, określoną dwukierunkowością na prawdziwą, oraz argumentem \pyth|batch_first| określającym strukturę tensora wyjściowego jako $(b, s, f)$ zamiast $(s, b, f)$, gdzie $b$ oznacza serię (ang. \textit{batch}), $s$ sekwencję (ang. \textit{sequence}), zaś $f$ cechy (ang. \textit{feature}).
+
+Warstwa rzutująca mapę otrzymanych cech na kategorie wyjściowe jest warstwą liniową z biblioteki \textit{PyTorch}. Jako liczbę cech wejściowych otrzymuje wartość $512$, a liczba cech wyjściowych określana jest przez odpowiedni argument konstruktora.
+
+Metoda \pyth|forward()| tej klasy w pierwszej kolejności pobiera wymiary przekazanego jej tensora do zmiennych \pyth|b|, \pyth|c|, \pyth|h| oraz \pyth|w|, na podstawie których dokonuje przekształcenia tego tensora do postaci $(b, c, h \times w)$, który to jest następnie poddawany permutacji, w której jest zamieniany miejscami rozmiar wymiaru drugiego i trzeciego.
+
+Tak zmodyfikowane dane wejściowe są następnie przekazywane do warstwy LSTM dekodera, z którego wyniku działania pobierany jest wyłącznie wyjściowy tensor, który jest przekazywany do warstwy liniowej. Rezultat obliczeń warstwy liniowej jest poddawany permutacji, w której zamieniany ze sobą są rozmiary wymiarów pierwszego i drugiego.
+
+Zwracanymi przez dekoder danymi jest wynik działania funkcji \pyth|log_softmax|, działającej na trzecim wymiarze wejściowego tensora, która nakłada funkcję softmax, na którą to nakładany jest logarytm.
+
+\subsection{Zbiór danych GrandStaff}
+
+Zbiór danych \textit{GrandStaff} jest pierwszym zbiorem danych zawierającym polifoniczne zapisy nutowe na fortepian, przeznaczonym do uczenia rozwiązań end-to-end. Jego nazwa odnosi się do angielskiego słowa \textit{grandstaff}, określającego zespół dwóch pięciolinii połączonych klamrą na początku, przeznaczonych do grania na fortepianie.
+Składa się on z 53882 syntetycznie stworzonych obrazów pojedynczych linii zapisu nutowego na fortepian, wraz z ich reprezentacjami w formatach **kern i BEKERN oraz wersjami obrazu przedstawiającymi zniekształcony zapis nutowy.
+
+Format **kern jest jednym z najczęściej wykorzystywanych formatów w komputerowej analizie muzyki. Składa się on z prostego słownika i prostej do odczytywania struktury pliku, która jest po prostu zapisem tekstowym będącym sekwencją linii, gdzie każda linia jest złożona z kolumn odseparowanych znakiem tabulacji. Każda z kolumn zawiera informacje takie jak kodowanie znaków zapisu nutowego jak klucze, nuty, pauzy etc. oraz instrukcje mówiące o rozpoczęciu czy zakończeniu pięciolinii. Jest to zasadniczo tekstowa reprezentacja zapisu nutowego, który został obrócony o 90\degree, którego podobieństwo jest pokazane na rysunku \ref{fig:kern-score}. Każda linia pliku **kern jest czytana od lewej do prawej, gdzie symbole są interpretowane w tym samym czasie, a następnie od góry do dołu.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=10cm]{images/kern-nuty.jpg}
+	\caption{Przykład fragmentu zapisu nutowego w formacie KERN (lewa) wyrównanego z wyrenderowanym zapisem nutowym (prawa) ze zbioru danych GrandStaff.}
+	\label{fig:kern-score}
+\end{figure}
+
+Dzięki takiej reprezentacji możliwe jest traktowanie zapisu nutowego w sposób podobny do normalnego pisma, które składa się z linii. Pozwala to na zastosowanie właśnie takich technik jak rozwijanie dokumentu\cite{Coquenet2021}, umożliwiając budowę systemów end-to-end dla polifonicznych zapisów nutowych.
+
+Dodatkowo w zbiorze GrandStaff wszystkie zapisy posiadają przetransponowane wersje, by możliwe było przygotowanie modelu do różnie wyglądających zapisów, gdyż w niektórych przypadkach transpozycje zmieniają wygląd i położenie ogonków i pałeczek nut, jak jest to widoczne na rysunku \ref{fig:score-transposition}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=14cm]{images/grandstaff-transpozycje.jpg}
+	\caption{Przykład transpozycji zapisu nutowego w zbiorze danych GrandStaff.}
+	\label{fig:score-transposition}
+\end{figure}
+
+
+\subsection{Trenowanie modelu głębokiego uczenia} \label{ModelTraining}
+
+Trenowanie odbywało się na platformie Google Colab, na instancji wyposażonej w układ GPU NVidia Tesla T4 oraz 51 GB pamięci operacyjnej, przez \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} epok, w ciągu \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} sesji środowiska Google Colab, na przestrzeni \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} dni. Łączny czas uczenia modelu wyniósł około \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} godzin.
+
+Otrzymany model posiada 20,8 miliona parametrów.
+
+\begin{lstlisting}[caption={Główna funkcja uczenia modelu}, label={model-main}]
+def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_name="CRNN"):
+	outpath = f"out/GrandStaff_{encoding}/{model_name}"
+	os.makedirs(outpath, exist_ok=True)
+	os.makedirs(f"{outpath}/hyp", exist_ok=True)
+	os.makedirs(f"{outpath}/gt", exist_ok=True)
+	
+	train_dataset, val_dataset, test_dataset = load_dataset(train_path, val_path, test_path, corpus_name=f"GrandStaff_{encoding}")
+	
+	_, i2w = train_dataset.get_dictionaries()
+	
+	train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
+	val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
+	test_dataloader = DataLoader(test_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
+	
+	maxheight, maxwidth = train_dataset.get_max_hw()
+	
+	model, torchmodel = get_model(maxwidth=maxwidth, maxheight=maxheight, in_channels=1, blank_idx=len(i2w), out_size=train_dataset.vocab_size()+1, i2w=i2w, model_name=model_name, output_path=outpath)
+	
+	wandb_logger = WandbLogger(project='E2E_Pianoform', name=model_name)
+	
+	early_stopping = EarlyStopping(monitor='val_SER', min_delta=0.01, patience=5, mode="min", verbose=False)
+	
+	checkpointer = ModelCheckpoint(dirpath=f"weights/{encoding}/{model_name}", filename=f"{model_name}", monitor="val_SER", mode='min', save_top_k=1, verbose=False)
+	
+	trainer = Trainer(max_epochs=10, logger=wandb_logger, callbacks=[checkpointer, early_stopping])
+	
+	trainer.fit(model, train_dataloader, val_dataloader)
+	
+	model = LighntingE2EModelUnfolding.load_from_checkpoint(checkpointer.best_model_path, model=torchmodel)
+	trainer.test(model, test_dataloader)
+	wandb.finish()
+\end{lstlisting}
 
 
 

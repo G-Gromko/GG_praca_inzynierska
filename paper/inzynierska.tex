@@ -32,6 +32,7 @@
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{pythonhighlight}
+\usepackage{gensymb}
 %\usepackage[%backend=biber,refsegment=section,defernumbers=true,]{biblatex}
 
 \lstset { %
@@ -94,7 +95,11 @@ Jednakże pomimo tego dynamicznego rozwoju, modele te są ograniczone zazwyczaj 
 
 Większość dostępnej literatury skupia się problemie wydobywania danych już z odpowiednio przygotowanych obrazów, które mogą być w pewien sposób zniekształcone, jednak proces digitalizacji zapisów nutowych dzisiaj odbywa się zazwyczaj przy pomocy zdjęć zrobionych przy użyciu przenośnych urządzeń, takich jak telefon wyposażony w aparat, zamiast skanerów. Jak takie podejście jest wygodniejsze dla użytkownika, gdyż w dzisiejszych czasach większość osób ma już przy sobie przez prawie cały czas urządzenia wyposażone w aparat, to niestety wszystkie układy optyczne wprowadzają dystorsję do wykonywanego obrazu, beczkową dla obiektywów szerokokątnych, czy poduszkową dla teleobiektywów, co powoduje niechciane zniekształcenia w zapisywanym obrazie. Kolejną wadą fotografowania dokumentów jest to, iż w przeciwieństwie do skanów, uzyskany obraz nie jest płaski i wyrównany z ewentualnym lekkim przechyleniem, które jest proste do poprawienia, tylko często posiada zniekształcenia we wszystkich wymiarach, jak na przykład gdy fotografuje się stronę książki, co skutkuje nieliniowymi wygięciami przy krawędziach stron. Powoduje to zmniejszenie skuteczności systemów, wymagając dodatkowego stopnia wstępnego przetwarzania obrazu, polegającego na usuwaniu wypaczenia, zanim zostanie on przekazany do odzyskania informacji przez wyuczony model.
 
-Dlatego też celem niniejszej pracy jest zaprojektowanie i stworzenie programu, który pozwoli na odczytanie informacji zawartych w zapisie nutowym na fortepian ze zdjęć zrobionych przez użytkownika, by mógł je on wygodnie zdigitalizować do pliku graficznego lub MIDI.
+Dlatego też celem niniejszej pracy jest zaprojektowanie i stworzenie programu, który pozwoli na odczytanie informacji zawartych w zapisie nutowym na fortepian ze zdjęć zrobionych przez użytkownika, by mógł je on wygodnie zdigitalizować do pliku graficznego lub MIDI. 
+
+Zakres pracy obejmuje stworzenie programu w języku Python wykorzystujący model głębokiego ucznia end-to-end oparty na rekurencyjnych sieciach neuronowych opracowany przez Antonio Ríos-Vilę wytrenowany na zbiorze danych GrandStaff\cite{Rios-Vila2023}, proces usuwania wypaczenia stworzony przez Matta Zuckera, oraz algorytm odnajdywania pozycji pięciolinii opracowany przez Mariusza Szwocha \cite{Szwoch2005} oraz otwartoźródłowych bibliotek przyśpieszających tworzenie programu.
+
+Praca składa się z pięciu rozdziałów. Rozdział 1 obejmuje określenie specyfikacji wymagań funkcjonalnych, niefunkcjonalnych oraz biznesowych stawianych tworzonemu programowi. Rozdział 2 omawia wykorzystane technologie w projekcie. Rozdział 3 pokazuje budowę programu przy użyciu diagramów UML oraz interfejsu użytkownika. Rozdział 4 przedstawia narzędzie programistyczne użyte podczas pracy nad projektem. Rozdział 5 opisuje implementację najważniejszych części powstałego programu.
 
 
 \input{chapters/chapter1}

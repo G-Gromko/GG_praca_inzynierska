@@ -3,7 +3,7 @@ Wersja Pythona na której został stworzony program: 3.11.0
 ================================================
 
 Plikiem do uczenia modelu jest notatnik E2E_pianoform_model.ipynb, i jest on przeznaczony do działania w środowisku Google Colab.
-Model do uczenia wymaga ~25GB RAM oraz ~9GB VRAM
+Model do uczenia wymaga ~18GB RAM oraz ~9GB VRAM
 
 Zbiór danych GrandStaff do uczenia modelu znajduje się na stronie: https://sites.google.com/view/multiscore-project/datasets
 
