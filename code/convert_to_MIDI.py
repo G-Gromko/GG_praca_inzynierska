@@ -23,17 +23,17 @@ Broad program overview:
 # ======================================================================================================================================================================
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def __main__():
+def get_kern(filepath):
     # example files for testing
-    file = "test_images/DSC_0920.JPG" # Photo of music sheet on flat surface
-    # file = "test_images/DSC_0921.JPG" # Photo of music sheet on flat surface
-    # file = "test_images/DSC_0925.JPG" # Photo of music sheet on flat surface
-    # file = "test_images/DSC_0926.JPG" # Photo of music sheet bent to book-like form
+    # filepath = "test_images/DSC_0920.JPG" # Photo of music sheet on flat surface
+    # filepath = "test_images/DSC_0921.JPG" # Photo of music sheet on flat surface
+    # filepath = "test_images/DSC_0925.JPG" # Photo of music sheet on flat surface
+    # filepath = "test_images/DSC_0926.JPG" # Photo of music sheet bent to book-like form
 
 
-    img = cv2.imread(file)
+    img = cv2.imread(filepath)
     staff_detect_img = img.copy()
-    img_name = os.path.basename(file)
+    img_name = os.path.basename(filepath)
     print("-- Image loading done --")
     print("-- Loaded image: ", img_name, " --")
 
@@ -49,11 +49,20 @@ def __main__():
 
     print(staves_y_pos)
 
-    cropped_staves = crop_staves(staff_line_distance, staves_y_pos, dewarped_img, False)
+    cropped_staves = crop_staves(staff_line_distance, staves_y_pos, dewarped_img)
     # print("-- Obtaining semantic information done --")
     # print("-- Concatenation of semantic information done --")
     # print("-- Conversion to MIDI done --")
     # print("-- Saving obtained MIDI files done --")
 
-if __name__ == "__main__":
-    __main__()
+    
+def convert_files_to_MIDI(filepaths=[], make_pdf = False, one_file = False):
+    kern_files = []
+
+    for file in filepaths:
+        kern_files.append(get_kern(file))
+
+    # if one_file:
+        # prepare_kern_files(kern_files)
+
+    

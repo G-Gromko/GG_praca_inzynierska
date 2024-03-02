@@ -141,4 +141,4 @@ def get_model(maxwidth, maxheight, in_channels, out_size, blank_idx, i2w, model_
     model = get_crnn_model(maxwidth, maxheight, in_channels, out_size)
     lighningModel = LighntingE2EModelUnfolding(model=model, blank_idx=blank_idx, i2w=i2w, output_path=output_path)
     summary(lighningModel, input_size=([1, in_channels, maxheight, maxwidth]))
-    return lighningModel, model
+    return lighningModel

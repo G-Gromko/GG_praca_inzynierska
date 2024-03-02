@@ -28,7 +28,7 @@ def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_n
 
     maxheight, maxwidth = train_dataset.get_max_hw()
 
-    model, torchmodel = get_model(maxwidth=maxwidth, maxheight=maxheight, in_channels=1, blank_idx=len(i2w), out_size=train_dataset.vocab_size()+1, i2w=i2w, model_name=model_name, output_path=outpath)
+    model = get_model(maxwidth=maxwidth, maxheight=maxheight, in_channels=1, blank_idx=len(i2w), out_size=train_dataset.vocab_size()+1, i2w=i2w, model_name=model_name, output_path=outpath)
 
     wandb_logger = WandbLogger(project='E2E_Pianoform', name=model_name)
     
@@ -42,8 +42,7 @@ def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_n
     
     trainer.fit(model, train_dataloader, val_dataloader)
     
-    model = LighntingE2EModelUnfolding.load_from_checkpoint(checkpointer.best_model_path, model=torchmodel)
-    trainer.test(model, test_dataloader)
+    trainer.test(model, test_dataloader, ckpt_path=checkpointer.best_model_path)
     wandb.finish()
 
 if __name__ == "__main__":

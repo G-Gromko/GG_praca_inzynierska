@@ -76,7 +76,7 @@ def find_grandstaff_boxes(x, y, staff_line_distance, staves_y_pos = []):
     return grandstaff_bb_list
 
 
-def find_bounding_boxes(x, y, staff_line_distance = int, staves_y_pos = [], grandstaff = False):
+def find_bounding_boxes(x, y, staff_line_distance = int, staves_y_pos = [], grandstaff = True):
     if len(staves_y_pos) == 0 and not grandstaff:
         return []
     if len(staves_y_pos) <= 2 and grandstaff:
@@ -107,11 +107,13 @@ def crop_staves(staff_line_distance, staves_y_pos, img, grandstaff = False):
         right = i[2]
         bottom = i[3]
         crop = img[top:bottom, left:right]
-        cropped_img_list.append(crop)
+        resized = resize_with_aspect_ratio(crop, height=256, inter=cv2.INTER_LINEAR)
+        rotated = cv2.rotate(resized, cv2.ROTATE_90_CLOCKWISE)
+        cropped_img_list.append(rotated)
 
     if DEBUG_LEVEL >= 2:
         for i in cropped_img_list:
-            resized = resize_with_aspect_ratio(i, width=1280)
+            resized = resize_with_aspect_ratio(i, height=1280)
             cv2.imshow("cropped", resized)
             cv2.waitKey(0)
         cv2.destroyAllWindows()
