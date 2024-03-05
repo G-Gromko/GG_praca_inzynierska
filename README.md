@@ -25,11 +25,19 @@ partitions<br />
 
 Następnie katalogi beethoven, chopin, hummel, joplin, mozart, partitions oraz scrlatti-d należy zapakować do pliku grandstaff.zip. Utworzone archiwum należy umieścić na Dysku Google konta połączonego z Google Colab.
 
-W momencie gdy notatnik E2E_pianoform_model.ipynb jest załadowany w środowisku Colab, a zapakowany zbiór danych Grandstaff z dodanymi plikami partycjonowania znajduje się na Dysku, by rozpocząć uczenie modelu należy uruchomić cały kod z notatnika i podążać za poleceniami, które mogą się wyświetlić, jak autoryzacja dostępu Google Colab do Dysku, czy prośba o podanie klucza API WanDB.
+W momencie gdy notatnik E2E_pianoform_model.ipynb jest załadowany w środowisku Colab, a zapakowany zbiór danych Grandstaff z dodanymi plikami partycjonowania znajduje się na Dysku, by rozpocząć uczenie modelu należy uruchomić cały kod z notatnika i podążać za poleceniami, które mogą się wyświetlić, jak autoryzacja dostępu Google Colab do Dysku, czy prośba o podanie klucza API WandB.
 
 
 ================================================
 
+Z racji swojej wielkości, punkty zapisu znajdują się w folderze na moim Dysku Google, do którego link znajduje się poniżej:
+
+https://drive.google.com/drive/folders/13xe0VCklnhYtFbxWt8kX5HAJeksz4DVO?usp=drive_link
+
+
+Do działania programu należy pobrać jeden z nich i umieścić w folderze /code/model_checkpoints
+
+================================================
 W folderze code znajduje się kod źródłowy tego co działa aktualnie w projekcie, czyli na tę chwilę wykrywanie pozycji pięciolinii, usuwanie wypaczenia oraz segmentacja obrazu. Wraz z tym jak będzie postępowała praca będę tam dodawał kolejne elementy.
 
 Usuwanie wypaczenia jest przyciętą i lekko dostosowaną wersją programu stworzonego przez Matta Zucker'a. Link do źródła znajduje się w sources/websites.txt

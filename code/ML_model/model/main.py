@@ -1,11 +1,10 @@
 import os
-import fire
 import wandb
 
-from data import load_dataset, batch_preparation_ctc
+from ML_model.model.data import load_dataset, batch_preparation_ctc
 from torch.utils.data import DataLoader
 from lightning.pytorch.loggers import WandbLogger
-from model_manager import get_model, LighntingE2EModelUnfolding
+from ML_model.model.model_manager import get_model, LighntingE2EModelUnfolding
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
@@ -22,13 +21,13 @@ def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_n
 
     _, i2w = train_dataset.get_dictionaries()
 
-    train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
-    val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
-    test_dataloader = DataLoader(test_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
+    train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc)
+    val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc)
+    test_dataloader = DataLoader(test_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc)
 
     maxheight, maxwidth = train_dataset.get_max_hw()
 
-    model = get_model(maxwidth=maxwidth, maxheight=maxheight, in_channels=1, blank_idx=len(i2w), out_size=train_dataset.vocab_size()+1, i2w=i2w, model_name=model_name, output_path=outpath)
+    model = get_model(maxwidth=maxwidth, maxheight=maxheight, in_channels=1, blank_idx=len(i2w), out_size=train_dataset.vocab_size()+1, i2w=i2w, output_path=outpath)
 
     wandb_logger = WandbLogger(project='E2E_Pianoform', name=model_name)
     

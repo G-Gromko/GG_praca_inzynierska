@@ -8,7 +8,7 @@ from loguru import logger
 from rich.progress import track
 from torch.utils.data import Dataset
 from torchvision import transforms
-from utils import check_and_retrieveVocabulary
+from ML_model.model.model_utils import check_and_retrieveVocabulary
 
 @logger.catch
 def batch_preparation_ctc(data):

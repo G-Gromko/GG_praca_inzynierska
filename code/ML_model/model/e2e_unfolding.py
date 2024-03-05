@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import random
-from torchinfo import summary
 
 class DepthSepConv2D(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, activation=None, padding=True, stride=(1,1), dilation=(1,1)):
@@ -179,8 +178,7 @@ class E2EScore_CRNN(nn.Module):
         x = self.decoder(x)
         return x
     
-def get_crnn_model(maxwidth, maxheight, in_channels, out_size, maxlen=None):
-    model = E2EScore_CRNN(in_channels=in_channels, out_cats=out_size, max_len=maxlen)
-    summary(model, input_size=[(1,in_channels,maxheight,maxwidth)], dtypes=[torch.float])
+def get_crnn_model(in_channels, out_size):
+    model = E2EScore_CRNN(in_channels=in_channels, out_cats=out_size)
     
     return model

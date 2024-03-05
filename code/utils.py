@@ -87,3 +87,58 @@ def print_position_list(list, x_coord):
         print(i[1], ", ", end="")
 
     print()
+
+def remove_items(test_list, item): 
+    res = [i for i in test_list if i != item] 
+    return res
+
+def remove_wrong_whitespace(pred):
+    pred = pred[4:-4]
+
+    i = 1
+    while i < len(pred):
+        if pred[i] == pred[i-1] and pred[i] == '<b>':
+            pred.pop(i)
+            i -= 1  
+        elif pred[i] == pred[i-1] and pred[i] == '<t>':
+            pred.pop(i)
+            i -= 1
+        elif pred[i] == pred[i-1] and pred[i] == '<s>':
+            pred.pop(i)
+            i -= 1
+        elif pred[i] == '<b>' and pred[i-1] == '<t>':
+            pred.insert(i, '.')
+            i += 1
+        elif pred[i-1] == '<b>' and pred[i] == '<t>':
+            pred.pop(i)
+            i -= 1
+        elif pred[i-1] == '<b>' and pred[i] == '<s>':
+            pred.pop(i)
+            i -= 1
+        elif pred[i-1] == '<s>' and pred[i] == '<t>':
+            pred.pop(i-1)
+            i -= 1
+        elif pred[i-1] == '<s>' and pred[i] == '<b>':
+            pred.pop(i-1)
+            i -= 1
+        i += 1
+
+    return pred
+
+
+def make_krn_from_pred(pred):
+
+    pred = remove_wrong_whitespace(pred)
+    ret_str = ""
+
+    for p in pred:
+        if p == '<t>':
+            p = "\t"
+        elif p == "<b>":
+            p = "\n"
+        elif p == "<s>":
+            p = " "
+
+        ret_str += p
+
+    return ret_str

@@ -9,7 +9,7 @@ def main():
         [ sg.Text("Choose files to convert from list:") ],
         [
             sg.Text("Image Folder"),
-            sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+            sg.In(size=(30, 1), enable_events=True, key="-FOLDER-"),
             sg.FolderBrowse(),
         ],
         [
@@ -20,10 +20,16 @@ def main():
     ]
 
     file_list_column_ready = [
-        [ sg.Text("Please select files with music score\n\nFiles to convert in order:") ],
+        [ sg.Text("Please select folder where MIDI files will be saved") ],
+        [ 
+            sg.In(size=(43,1), enable_events=True, key="-SAVE FOLDER-"),
+            sg.FolderBrowse(),
+        ],
+        [ sg.Text("------------------------------------------------------------------------------------------") ],
+        [ sg.Text("Files to convert in order:") ],
         [
             sg.Listbox(
-                values=[], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, enable_events=True, size=(50,40), key="-FILE LIST RDY-"
+                values=[], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, enable_events=True, size=(50,37), key="-FILE LIST RDY-"
             )
         ]
     ]
@@ -31,7 +37,7 @@ def main():
     file_buttons = [
         [ sg.Button("", disabled=True, size=(0,10), button_color=("#64778d", "#64778d")) ],
         [ sg.Button(">>", key="-ADD-", size=(3,1)) ],
-        [ sg.Button("", disabled=True, size=(0,41), button_color=("#64778d", "#64778d")) ],
+        [ sg.Button("", disabled=True, size=(0,33), button_color=("#64778d", "#64778d")) ],
     ]
 
     file_buttons_rdy= [
@@ -39,20 +45,19 @@ def main():
         [ sg.Button("↑", key="-MV UP-", size=(3,1)) ],
         [ sg.Button("DEL", key="-REMOVE-", size=(3,1)) ],
         [ sg.Button("↓", key="-MV DOWN-", size=(3,1)) ],
-        [ sg.Button("", disabled=True, size=(0,39), button_color=("#64778d", "#64778d")) ],
+        [ sg.Button("", disabled=True, size=(0,31), button_color=("#64778d", "#64778d")) ],
     ]
 
     # For now will only show the name of the file that was chosen
     image_viewer_column = [
-        [ sg.Text(size=(72, 1), key="-TOUT-") ],
-        [ sg.Image(size=(720, 800), key="-IMAGE-") ],
+        [ sg.Text(size=(45, 1), key="-TOUT-") ],
+        [ sg.Image(size=(720, 720), key="-IMAGE-") ],
     ]
 
     convert_buttons = [
         [
             sg.Button("Convert", key="-CONVERT-", disabled=True), 
-            sg.Checkbox("Combine to one file", key="-ONE FILE-", disabled=True), 
-            sg.Checkbox("Also make PDF", key="-MAKE PDF-", disabled=True)
+            sg.Checkbox("Combine to one file", key="-ONE FILE-", disabled=True),
         ],
     ]
 
@@ -80,11 +85,9 @@ def main():
         if len(convert_files) == 0:
             window["-CONVERT-"].update(disabled=True)
             window["-ONE FILE-"].update(disabled=True)
-            window["-MAKE PDF-"].update(disabled=True)
         else:
             window["-CONVERT-"].update(disabled=False)
             window["-ONE FILE-"].update(disabled=False)
-            window["-MAKE PDF-"].update(disabled=False)
 
 
     def diplay_image(filename):
@@ -121,11 +124,8 @@ def main():
             convert_files.insert(idx, filename)
 
         return convert_files, idx
-
-
-
-    leng = 0
-    idx = 0
+    
+    
     convert_files = []
     # Run the Event Loop
     while True:
@@ -218,18 +218,21 @@ def main():
                 pass
 
         elif event == "-CONVERT-":
-            if values["-MAKE PDF-"] == True and values["-ONE FILE-"] == True:
-                print("Converting to one MIDI file and making pdf")
-                # convert_files_to_MIDI(convert_files, True, True)
-            if values["-MAKE PDF-"] == False and values["-ONE FILE-"] == True:
+            save_path = ""
+            if values["-SAVE FOLDER-"] == "":
+                save_path = os.getcwd()
+            else:
+                save_path = values["-SAVE FOLDER-"]
+                if not os.path.isdir(save_path):
+                    save_path = os.getcwd()
+
+
+            if values["-ONE FILE-"] == True:
                 print("Converting to one MIDI file")
-                # convert_files_to_MIDI(convert_files, False, True)
-            if values["-MAKE PDF-"] == True and values["-ONE FILE-"] == False:
-                print("Converting to multiple MIDI files and making multiple PDF")
-                # convert_files_to_MIDI(convert_files, True, False)
-            if values["-MAKE PDF-"] == False and values["-ONE FILE-"] == False:
+                # convert_files_to_MIDI(convert_files, True, save_path)
+            elif values["-ONE FILE-"] == False:
                 print("Converting to multiple MIDI files")
-                # convert_files_to_MIDI(convert_files, False, False)
+                # convert_files_to_MIDI(convert_files, True, save_path)
 
 
     window.close()

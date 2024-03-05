@@ -8,8 +8,8 @@ import lightning as L
 
 from torchinfo import summary
 from itertools import groupby
-from eval_functions import get_metrics
-from e2e_unfolding import get_crnn_model
+from ML_model.model.eval_functions import get_metrics
+from ML_model.model.e2e_unfolding import get_crnn_model
 
 class LighntingE2EModelUnfolding(L.LightningModule):
     def __init__(self, model, blank_idx, i2w, output_path) -> None:
@@ -137,8 +137,8 @@ class LighntingE2EModelUnfolding(L.LightningModule):
 
         return ser
 
-def get_model(maxwidth, maxheight, in_channels, out_size, blank_idx, i2w, model_name, output_path):
-    model = get_crnn_model(maxwidth, maxheight, in_channels, out_size)
+def get_model(maxwidth, maxheight, in_channels, out_size, blank_idx, i2w, output_path):
+    model = get_crnn_model(in_channels, out_size)
     lighningModel = LighntingE2EModelUnfolding(model=model, blank_idx=blank_idx, i2w=i2w, output_path=output_path)
     summary(lighningModel, input_size=([1, in_channels, maxheight, maxwidth]))
     return lighningModel
