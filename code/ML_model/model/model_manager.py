@@ -84,6 +84,9 @@ class LighntingE2EModelUnfolding(L.LightningModule):
         self.log('val_SER', ser)
         self.log('val_LER', ler)
 
+        self.gt_val_ex = []
+        self.dec_val_ex = []
+
         return ser
 
     def test_step(self, test_batch, batch_idx):

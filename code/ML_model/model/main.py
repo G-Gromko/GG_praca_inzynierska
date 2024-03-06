@@ -21,7 +21,7 @@ def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_n
 
     _, i2w = train_dataset.get_dictionaries()
 
-    train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc)
+    train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc)
     test_dataloader = DataLoader(test_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc)
 
