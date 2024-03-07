@@ -517,29 +517,18 @@ class Encoder(nn.Module):
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=15cm]{images/encoder-model.png}
-	\caption{Wizualizacja struktury enkodera modelu uczenia głębokiego. Źródło: \cite{Rios-Vila2023}}
+	\includegraphics[width=15cm]{images/Encoder_illst.pdf}
+	\caption{Wizualizacja struktury enkodera modelu uczenia głębokiego. CB: Blok konwolucyjny, DSCB: Separujący wgłębnie blok konwolucyjny.}
 	\label{fig:encoder-model-vis}
 \end{figure}
 
-Enkoder, klasą dziedziczącą po \pyth|Module| biblioteki \textit{PyTorch}, składa się z następujących po sobie blokach konwolucyjnych, których kanały wyjściowe zwiększają się od 32 do 512, następnie informacje przekazywane są do następujących po sobie separujących wgłębnie bloków konwolucyjnych (ang. Depthwise Separable Convolution Blocks), których liczba kanałów wejściowych i wyjściowych zawsze wynosi 512.
+Enkoder, będący klasą dziedziczącą po \pyth|Module| biblioteki \textit{PyTorch}, składa się z następujących po sobie blokach konwolucyjnych, których kanały wyjściowe zwiększają się od 32 do 512, następnie informacje przekazywane są do następujących po sobie separujących wgłębnie bloków konwolucyjnych (ang. Depthwise Separable Convolution Blocks), których liczba kanałów wejściowych i wyjściowych zawsze wynosi 512.
 
 Pierwszy blok konwolucyjny posiada krok o rozmiarze $1 \times 1$, bloki od drugiego do czwartego $2\times 2$, natomiast ostatni $2 \times 1$. Rozmiar kroku w przypadku wgłębnych bloków konwolucyjnych jest dla nich zawsze taki sam i wynosi $1 \times 1$.
 
 Dzięki takiej architekturze możliwe jest przekształcenie wiadomości zawartych na obrazie tak, by zamiast zajmować dwuwymiarową przestrzeń, posiadały one formę pojedynczej linii, która jest odczytywana jako pojedyncza linijka przez dekoder. Podejście to, nazywane rozwijaniem dokumentu, zostało zaproponowane przez Denisa Coquenet'a, w pracy dotyczącej wieloliniowego odczytywania pisma odręcznego bez wcześniejszej segmentacji\cite{Coquenet2021}, w którym model uczy się rozwijać linie tekstu sekwencji od góry do dołu, by potem je odczytać sekwencyjnie w ich kolejności czytania. 
 
-Enkoder zaimplementowany w tym modelu pobiera obraz wejściowy $X \in \mathbb{R}^{C\times H \times W}$ i zwraca mapę cech $f \in \mathbb{R}^{512, \frac{W}{16}\times\frac{H}{8}}$, gdzie $C$ oznacza liczbę filtrów używanych przez warstwy konwolucyjne modelu, $W$ szerokość obrazu oraz $H$ jego wysokość. Można to rozumieć jako proces konkatenacji regionów par polifonicznych, którego wizualizacja jest przedstawiona na rysunku \ref{fig:rowijanie-nut}.
-
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=15cm]{images/rozwijanie-nut.png}
-	\caption{Wizualizacja procesu konkatenacji regionów par polifonicznych. Źródło: \cite{Rios-Vila2023}}
-	\label{fig:rowijanie-nut}
-\end{figure}
-
-
-Pozwala to na transkrypcję nut w oryginalnym formacie KERN, gdyż takie ułożenie odpowiada strukturze tego formatu, mianowicie informacje są zapisywane od góry do dołu i od lewej do prawej.
+Enkoder zaimplementowany w tym modelu pobiera obraz wejściowy $X \in \mathbb{R}^{C\times H \times W}$ i zwraca mapę cech $f \in \mathbb{R}^{512, \frac{W}{16}\times\frac{H}{8}}$, gdzie $C$ oznacza liczbę filtrów używanych przez warstwy konwolucyjne modelu, $W$ szerokość obrazu oraz $H$ jego wysokość.
 
 Funkcja \pyth|forward()| przechodzi najpierw pętlą przez wszystkie dwuwymiarowe warstwy konwolucyjne, podając pierwszej dane wejściowe, zaś każdej kolejnej przekazując zmodyfikowane dane przez warstwę poprzednią. Następnie w pętli przechodzi ona po wszystkich warstwach separujących wgłębnie sieci konwolucyjnych, gdzie w każdym kroku pętli wynik działania warstwy jest dodawany do wcześniejszego, o ile ich rozmiary są sobie równe, jeśli nie, to zmienna \pyth|x| jest ustalana jedynie na wynik działania warstwy. Gdy dane wejściowe przejdą przez obie pętle, zostają zwrócone.
 
@@ -702,11 +691,11 @@ Następnie tworzona jest warstwa konwolucji punktowej \pyth|point_conv|, będąc
 Metoda \pyth|forward| najpierw wykonuje wgłębną konwolucję na danych wejściowych, i jeśli podczas inicjalizacji pole \pyth|padding| zostało określone, wykonywana jest operacja \pyth|F.pad|, nakładająca obliczony padding na tensor wejściowy. Następnie jeśli aktywacja została określona, jest ona wykonywana. Ostatnim krokiem wykonywanym na danych jest konwolucja punktowa, której wynik jest zwracany.
 
 \subsection{Realizacja dekodera modelu głębokiego uczenia} \label{Decoder}
-\begin{lstlisting}[caption={\pyth|RecurrentScoreUnfolding| - klasa dekodera modelu głębokiego uczenia}, label={decoder}]
-class RecurrentScoreUnfolding(nn.Module):
+\begin{lstlisting}[caption={\pyth|Decoder| - klasa dekodera modelu głębokiego uczenia}, label={decoder}]
+class Decoder(nn.Module):
 
 	def __init__(self, out_cats):
-		super(RecurrentScoreUnfolding, self).__init__()
+		super(Decoder, self).__init__()
 		self.dec_lstm = nn.LSTM(input_size=512, hidden_size=256, bidirectional=True, batch_first=True)
 		self.out_dense = nn.Linear(in_features=512, out_features=out_cats)
 	
@@ -723,8 +712,8 @@ class RecurrentScoreUnfolding(nn.Module):
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=15cm]{images/decoder-model.png}
-	\caption{Wizualizacja struktury dekodera modelu uczenia głębokiego. Źródło: \cite{Rios-Vila2023}}
+	\includegraphics[width=15cm]{images/Decoder_illst}
+	\caption{Wizualizacja struktury dekodera modelu uczenia głębokiego.}
 	\label{fig:decoder-model-vis}
 \end{figure}
 
@@ -734,9 +723,22 @@ Warstwa rzutująca mapę otrzymanych cech na kategorie wyjściowe jest warstwą 
 
 Metoda \pyth|forward()| tej klasy w pierwszej kolejności pobiera wymiary przekazanego jej tensora do zmiennych \pyth|b|, \pyth|c|, \pyth|h| oraz \pyth|w|, na podstawie których dokonuje przekształcenia tego tensora do postaci $(b, c, h \times w)$, który to jest następnie poddawany permutacji, w której jest zamieniany miejscami rozmiar wymiaru drugiego i trzeciego.
 
+Modyfikacje te można rozumieć jako proces konkatenacji regionów par polifonicznych, którego wizualizacja jest przedstawiona na rysunku \ref{fig:rowijanie-nut}.
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=15cm]{images/rozwijanie-nut.png}
+	\caption{Wizualizacja procesu konkatenacji regionów par polifonicznych. Źródło: \cite{Rios-Vila2023}}
+	\label{fig:rowijanie-nut}
+\end{figure}
+
+
+Pozwala to na transkrypcję nut w oryginalnym formacie KERN, gdyż takie ułożenie odpowiada strukturze tego formatu, mianowicie informacje są zapisywane od góry do dołu i od lewej do prawej.
+
 Tak zmodyfikowane dane wejściowe są następnie przekazywane do warstwy LSTM dekodera, z którego wyniku działania pobierany jest wyłącznie wyjściowy tensor, który jest przekazywany do warstwy liniowej. Rezultat obliczeń warstwy liniowej jest poddawany permutacji, w której zamieniany ze sobą są rozmiary wymiarów pierwszego i drugiego.
 
-Zwracanymi przez dekoder danymi jest wynik działania funkcji \pyth|log_softmax|, działającej na trzecim wymiarze wejściowego tensora, która nakłada funkcję softmax, na którą to nakładany jest logarytm.
+Zwracanymi przez dekoder danymi jest wynik działania funkcji \pyth|log_softmax()|, działającej na trzecim wymiarze wejściowego tensora, która nakłada funkcję softmax, na którą to nakładany jest logarytm.
 
 \subsection{Zbiór danych GrandStaff}
 
@@ -756,23 +758,42 @@ Dzięki takiej reprezentacji możliwe jest traktowanie zapisu nutowego w sposób
 
 Dodatkowo w zbiorze GrandStaff wszystkie zapisy posiadają przetransponowane wersje, by możliwe było przygotowanie modelu do różnie wyglądających zapisów, gdyż w niektórych przypadkach transpozycje zmieniają wygląd i położenie ogonków i pałeczek nut, jak jest to widoczne na rysunku \ref{fig:score-transposition}.
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=14cm]{images/grandstaff-transpozycje.jpg}
 	\caption{Przykład transpozycji zapisu nutowego w zbiorze danych GrandStaff.}
 	\label{fig:score-transposition}
 \end{figure}
 
+Kolejną ważną cechą tego zbioru danych jest posiadanie przez niego zapisu nutowego w wersji nienaruszonej, oraz zdeformowanej, która stara się naśladować zniekształcenia mogące powstać podczas fotografowania czy skanowania, przedstawione na rysunku \ref{fig:GS-normal-distorted}. Pozwala to na przygotowanie trenowanego modelu do zadania które będzie wykonywał, pozwalając uzyskać mu większą precyzję w trakcie jego wykonywania.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=14cm]{images/normal-distorted-GS}
+	\caption{Przykład zapisu nutowego ze zbioru danych GrandStaff w wersji bez zniekształceń oraz zniekształconej wersji tego samego zapisu.}
+	\label{fig:GS-normal-distorted}
+\end{figure}
 
 \subsection{Trenowanie modelu głębokiego uczenia} \label{ModelTraining}
 
-Trenowanie odbywało się na platformie \textbf{TO-SIĘ-OKAŻE}, na instancji wyposażonej w układ \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} oraz \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} GB pamięci operacyjnej, przez \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} epok, na przestrzeni \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} dni. Łączny czas uczenia modelu wyniósł około \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} godzin.
+Trenowanie odbywało się na platformie Vast.ai, na zdalnej instancji wyposażonej w układ NVidia GeForce RTX 3090 oraz 103 GB pamięci operacyjnej, przez 25 epok, z użyciem zniekształconych wersji zapisu nutowego zbioru danych GrandStaff. Łączny czas uczenia modelu wyniósł około 24 godzin.
 
-Otrzymany model posiada \textbf{DO-UZUPEŁNIENIA-JAK-SIĘ-MODEL-NAUCZY} miliona parametrów.
+Podczas trenowania modelu wykorzystanie pamięci GPU wyniosło około 14 GB, oraz około 15 GB pamięci operacyjnej.
 
-\begin{lstlisting}[caption={Główna funkcja uczenia modelu}, label={model-main}]
-def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_name="CRNN"):
-	outpath = f"out/GrandStaff_{encoding}/{model_name}"
+Otrzymany model posiada 20,8 miliona parametrów.
+
+W testach syntetycznych przeprowadzonych na podzbiorze zbioru danych GrandStaff osiągnął on wyniki:
+\begin{itemize}
+	\item SER (Sequence Error Rate) - 10,951\%
+	\item CER (Character Error Rate) - 9,178\%
+	\item LER (Line Error Rate) - 28,653\%
+\end{itemize}
+
+Uzyskane wyniki są zbliżone do tych uzyskanych przez autorów modelu\cite{Rios-Vila2023}.
+
+\begin{lstlisting}[caption={Główna funkcja procesu uczenia modelu.}, label={model-training-main}]
+def main(train_path, val_path, test_path, encoding="krn", model_name="CRNN"):
+	outpath = f"./out"
 	os.makedirs(outpath, exist_ok=True)
 	os.makedirs(f"{outpath}/hyp", exist_ok=True)
 	os.makedirs(f"{outpath}/gt", exist_ok=True)
@@ -781,7 +802,7 @@ def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_n
 	
 	_, i2w = train_dataset.get_dictionaries()
 	
-	train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
+	train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc, shuffle=True)
 	val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
 	test_dataloader = DataLoader(test_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
 	
@@ -793,9 +814,9 @@ def main(train_path=None, val_path=None, test_path=None, encoding="krn", model_n
 	
 	early_stopping = EarlyStopping(monitor='val_SER', min_delta=0.01, patience=5, mode="min", verbose=False)
 	
-	checkpointer = ModelCheckpoint(dirpath=f"weights/{encoding}/{model_name}", filename=f"{model_name}", monitor="val_SER", mode='min', save_top_k=1, verbose=False)
+	checkpointer = ModelCheckpoint(dirpath=f"./weights/", filename=f"{model_name}", monitor="val_SER", mode='min', save_top_k=3, verbose=True)
 	
-	trainer = Trainer(max_epochs=10, logger=wandb_logger, callbacks=[checkpointer, early_stopping])
+	trainer = Trainer(max_epochs=25, logger=wandb_logger, callbacks=[checkpointer, early_stopping])
 	
 	trainer.fit(model, train_dataloader, val_dataloader)
 	

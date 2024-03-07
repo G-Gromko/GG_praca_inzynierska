@@ -32,7 +32,7 @@ W momencie gdy notatnik E2E_pianoform_model.ipynb jest załadowany w środowisku
 
 Z racji swojej wielkości, punkty zapisu znajdują się w folderze na moim Dysku Google, do którego link znajduje się poniżej:
 
-https://drive.google.com/drive/folders/13xe0VCklnhYtFbxWt8kX5HAJeksz4DVO?usp=drive_link
+https://drive.google.com/drive/folders/13xe0VCklnhYtFbxWt8kX5HAJeksz4DVO?usp=sharing
 
 
 Do działania programu należy pobrać jeden z nich i umieścić w folderze /code/model_checkpoints
