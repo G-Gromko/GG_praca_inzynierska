@@ -38,7 +38,12 @@ https://drive.google.com/drive/folders/13xe0VCklnhYtFbxWt8kX5HAJeksz4DVO?usp=sha
 Do działania programu należy pobrać jeden z nich i umieścić w folderze /code/model_checkpoints
 
 ================================================
-W folderze code znajduje się kod źródłowy tego co działa aktualnie w projekcie, czyli na tę chwilę wykrywanie pozycji pięciolinii, usuwanie wypaczenia oraz segmentacja obrazu. Wraz z tym jak będzie postępowała praca będę tam dodawał kolejne elementy.
+
+Plik hum2mid jest niezbędny dla zapewnienia założonej funkcjonalności i został skompilowany ze zbioru dodatkowych narzędzi Humdrum, dostępnym na repozytorium:
+
+https://github.com/craigsapp/humextra
+
+================================================
 
 Usuwanie wypaczenia jest przyciętą i lekko dostosowaną wersją programu stworzonego przez Matta Zucker'a. Link do źródła znajduje się w sources/websites.txt
 
