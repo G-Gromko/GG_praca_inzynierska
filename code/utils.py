@@ -93,8 +93,7 @@ def remove_items(test_list, item):
     return res
 
 def remove_wrong_whitespace(pred):
-    pred = pred[4:-4]
-
+    
     i = 1
     while i < len(pred):
         if pred[i] == pred[i-1] and pred[i] == '<b>':

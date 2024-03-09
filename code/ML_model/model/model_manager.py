@@ -140,6 +140,21 @@ class LighntingE2EModelUnfolding(L.LightningModule):
 
         return ser
 
+    def predict(self, input):
+        pred = self.forward(input)
+        pred = pred.permute(1,0,2).contiguous()
+        pred = pred[0]
+        out_best = torch.argmax(pred,dim=1)
+        out_best = [k for k, g in groupby(list(out_best))]
+        decoded = []
+        for c in out_best:
+            if c.item() != self.blank_idx:
+                decoded.append(c.item())
+
+        decoded = [self.i2w[tok] for tok in decoded]
+
+        return decoded
+
 def get_model(maxwidth, maxheight, in_channels, out_size, blank_idx, i2w, output_path):
     model = get_crnn_model(in_channels, out_size)
     lighningModel = LighntingE2EModelUnfolding(model=model, blank_idx=blank_idx, i2w=i2w, output_path=output_path)

@@ -70,8 +70,8 @@ def find_grandstaff_boxes(x, y, staff_line_distance, staves_y_pos = []):
 
         grandstaff_bb_list.append((0, upper, x-1, lower))
 
-    if detected_lone_staff:
-        grandstaff_bb_list += find_monophonic_boxes(x, y, staff_line_distance, staves_y_pos[-1:])
+    # if detected_lone_staff:
+    #     grandstaff_bb_list += find_monophonic_boxes(x, y, staff_line_distance, staves_y_pos[-1:])
 
     return grandstaff_bb_list
 
@@ -92,7 +92,7 @@ def find_bounding_boxes(x, y, staff_line_distance = int, staves_y_pos = [], gran
     return bb_list
 
 
-def crop_staves(staff_line_distance, staves_y_pos, img, grandstaff = False):
+def crop_staves(staff_line_distance, staves_y_pos, img, grandstaff = True):
     print("-- Dewarped image segmentation ", end="")
     y, x = img.shape[:2]
     bb_list = find_bounding_boxes(x, y, staff_line_distance, staves_y_pos, grandstaff)

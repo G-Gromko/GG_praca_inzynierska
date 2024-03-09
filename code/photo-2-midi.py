@@ -9,8 +9,8 @@ def main():
         [ sg.Text("Choose files to convert from list:") ],
         [
             sg.Text("Image Folder"),
-            sg.In(size=(30, 1), enable_events=True, key="-FOLDER-"),
-            sg.FolderBrowse(),
+            sg.In(size=(30, 1), enable_events=True, key="-FOLDER-", readonly=True),
+            sg.FolderBrowse(key="-FOLDER BR 1-"),
         ],
         [
             sg.Listbox(
@@ -22,8 +22,8 @@ def main():
     file_list_column_ready = [
         [ sg.Text("Please select folder where MIDI files will be saved") ],
         [ 
-            sg.In(size=(43,1), enable_events=True, key="-SAVE FOLDER-"),
-            sg.FolderBrowse(),
+            sg.In(size=(43,1), enable_events=True, key="-SAVE FOLDER-", readonly=True),
+            sg.FolderBrowse(key="-FOLDER BR 2-"),
         ],
         [ sg.Text("------------------------------------------------------------------------------------------") ],
         [ sg.Text("Files to convert in order:") ],
@@ -57,7 +57,6 @@ def main():
     convert_buttons = [
         [
             sg.Button("Convert", key="-CONVERT-", disabled=True), 
-            sg.Checkbox("Combine to one file", key="-ONE FILE-", disabled=True),
         ],
     ]
 
@@ -80,14 +79,24 @@ def main():
 
     window = sg.Window("Photo-2-MIDI", layout)
 
+    def disable_UI(enable):
+        window["-CONVERT-"].update(disabled=enable)
+        # window["-ONE FILE-"].update(disabled=enable)
+        window["-MV UP-"].update(disabled=enable)
+        window["-REMOVE-"].update(disabled=enable)
+        window["-MV DOWN-"].update(disabled=enable)
+        window["-ADD-"].update(disabled=enable)
+        window["-SAVE FOLDER-"].update(disabled=enable)
+        window["-FOLDER-"].update(disabled=enable)
+        window["-FOLDER BR 1-"].update(disabled=enable)
+        window["-FOLDER BR 2-"].update(disabled=enable)
+
 
     def enable_conversion_buttons():
         if len(convert_files) == 0:
             window["-CONVERT-"].update(disabled=True)
-            window["-ONE FILE-"].update(disabled=True)
         else:
             window["-CONVERT-"].update(disabled=False)
-            window["-ONE FILE-"].update(disabled=False)
 
 
     def diplay_image(filename):
@@ -226,13 +235,14 @@ def main():
                 if not os.path.isdir(save_path):
                     save_path = os.getcwd()
 
-
-            if values["-ONE FILE-"] == True:
-                print("Converting to one MIDI file")
-                # convert_files_to_MIDI(convert_files, True, save_path)
-            elif values["-ONE FILE-"] == False:
-                print("Converting to multiple MIDI files")
-                # convert_files_to_MIDI(convert_files, True, save_path)
+            
+            print("Converting files to MIDI ")
+            disable_UI(True)
+            sg.Popup(sg.popup_no_buttons("This may take a while.\nPlease be patient."))
+            # mockup()
+            convert_files_to_MIDI(convert_files, False, save_path)
+            disable_UI(False)
+            sg.Popup(sg.popup_no_buttons(f"Your MIDI files were saved in:\n{save_path}"))
 
 
     window.close()
