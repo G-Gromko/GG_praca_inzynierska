@@ -11,6 +11,7 @@ from setup import DEBUG_LEVEL
 import utils
 from pdf2image import convert_from_path
 from subprocess import call
+import glob
 
 
 '''
@@ -81,8 +82,27 @@ def get_kern(model, filepath):
 
     return [kerns_from_images, os.path.basename(filepath).split('.')[0]]
 
+
+def the_MIDI_conversion(save_path):
+    krn_path = os.path.join(save_path, "krn")
+    krn_files = []
+    mid_filenames = []
+
+    for path in glob.glob(krn_path):
+        krn_files.append(path)
+
+    for file in krn_files:
+        aux = os.path.basename(file).replace(".krn", ".mid")
+        mid_path = os.path.join(save_path, aux)
+        mid_filenames.append(mid_path)
+
+    i = 0
+    while i < len(krn_files):
+        call(['./hum2mid', f"{str(krn_files[i])}", '-o', f"{str(mid_filenames[i])}"])
+        i += 1
+
     
-def convert_files_to_MIDI(filepaths, one_file, save_path):
+def convert_files_to_MIDI(filepaths, save_path):
     kern_content = []
     filenames = []
     model = get_crnn_model(1, 15849)
@@ -104,7 +124,7 @@ def convert_files_to_MIDI(filepaths, one_file, save_path):
         while j < len(kern_content[i]):
             k = 0
             while k < len(kern_content[i][j]):
-                krn_filename = fname + f"_pt{k+1}.krn"
+                krn_filename = fname + f"_page-{j+1}_pt{k+1}.krn"
                 save_file_name = os.path.join(krn_savepath, krn_filename)
 
                 with open (save_file_name, 'w') as savefile:
@@ -112,3 +132,5 @@ def convert_files_to_MIDI(filepaths, one_file, save_path):
                 k += 1
             j += 1
         i += 1
+
+    the_MIDI_conversion(save_path)

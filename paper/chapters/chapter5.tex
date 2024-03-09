@@ -747,7 +747,7 @@ Składa się on z 53882 syntetycznie stworzonych obrazów pojedynczych linii zap
 
 Format **kern jest jednym z najczęściej wykorzystywanych formatów w komputerowej analizie muzyki. Składa się on z prostego słownika i prostej do odczytywania struktury pliku, która jest po prostu zapisem tekstowym będącym sekwencją linii, gdzie każda linia jest złożona z kolumn odseparowanych znakiem tabulacji. Każda z kolumn zawiera informacje takie jak kodowanie znaków zapisu nutowego jak klucze, nuty, pauzy etc. oraz instrukcje mówiące o rozpoczęciu czy zakończeniu pięciolinii. Jest to zasadniczo tekstowa reprezentacja zapisu nutowego, który został obrócony o 90\degree, którego podobieństwo jest pokazane na rysunku \ref{fig:kern-score}. Każda linia pliku **kern jest czytana od lewej do prawej, gdzie symbole są interpretowane w tym samym czasie, a następnie od góry do dołu.
 
-\begin{figure}
+\begin{figure}[htb]
 	\centering
 	\includegraphics[width=10cm]{images/kern-nuty.jpg}
 	\caption{Przykład fragmentu zapisu nutowego w formacie KERN (lewa) wyrównanego z wyrenderowanym zapisem nutowym (prawa) ze zbioru danych GrandStaff.}
@@ -758,7 +758,7 @@ Dzięki takiej reprezentacji możliwe jest traktowanie zapisu nutowego w sposób
 
 Dodatkowo w zbiorze GrandStaff wszystkie zapisy posiadają przetransponowane wersje, by możliwe było przygotowanie modelu do różnie wyglądających zapisów, gdyż w niektórych przypadkach transpozycje zmieniają wygląd i położenie ogonków i pałeczek nut, jak jest to widoczne na rysunku \ref{fig:score-transposition}.
 
-\begin{figure}[h]
+\begin{figure}[htb]
 	\centering
 	\includegraphics[width=14cm]{images/grandstaff-transpozycje.jpg}
 	\caption{Przykład transpozycji zapisu nutowego w zbiorze danych GrandStaff.}
@@ -767,7 +767,7 @@ Dodatkowo w zbiorze GrandStaff wszystkie zapisy posiadają przetransponowane wer
 
 Kolejną ważną cechą tego zbioru danych jest posiadanie przez niego zapisu nutowego w wersji nienaruszonej, oraz zdeformowanej, która stara się naśladować zniekształcenia mogące powstać podczas fotografowania czy skanowania, przedstawione na rysunku \ref{fig:GS-normal-distorted}. Pozwala to na przygotowanie trenowanego modelu do zadania które będzie wykonywał, pozwalając uzyskać mu większą precyzję w trakcie jego wykonywania.
 
-\begin{figure}[ht]
+\begin{figure}[htb]
 	\centering
 	\includegraphics[width=14cm]{images/normal-distorted-GS}
 	\caption{Przykład zapisu nutowego ze zbioru danych GrandStaff w wersji bez zniekształceń oraz zniekształconej wersji tego samego zapisu.}
@@ -778,11 +778,11 @@ Kolejną ważną cechą tego zbioru danych jest posiadanie przez niego zapisu nu
 
 Trenowanie odbywało się na platformie Vast.ai, na zdalnej instancji wyposażonej w układ NVidia GeForce RTX 3090 oraz 103 GB pamięci operacyjnej, przez 25 epok, z użyciem zniekształconych wersji zapisu nutowego zbioru danych GrandStaff. Łączny czas uczenia modelu wyniósł około 24 godzin.
 
-Podczas trenowania modelu wykorzystanie pamięci GPU wyniosło około 14 GB, oraz około 15 GB pamięci operacyjnej.
+Podczas trenowania modelu wykorzystanie pamięci układu GPU wyniosło około 14 GB, oraz około 15 GB pamięci operacyjnej.
 
 Otrzymany model posiada 20,8 miliona parametrów.
 
-W testach syntetycznych przeprowadzonych na podzbiorze zbioru danych GrandStaff osiągnął on wyniki:
+W testach syntetycznych przeprowadzonych na testowym podzbiorze zbioru danych GrandStaff osiągnął on wyniki:
 \begin{itemize}
 	\item SER (Sequence Error Rate) - 10,951\%
 	\item CER (Character Error Rate) - 9,178\%

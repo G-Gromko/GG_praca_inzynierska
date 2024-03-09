@@ -78,16 +78,16 @@ def main():
 
     window = sg.Window("Photo-2-MIDI", layout)
 
-    def disable_UI(enable):
-        window["-CONVERT-"].update(disabled=enable)
-        window["-MV UP-"].update(disabled=enable)
-        window["-REMOVE-"].update(disabled=enable)
-        window["-MV DOWN-"].update(disabled=enable)
-        window["-ADD-"].update(disabled=enable)
-        window["-SAVE FOLDER-"].update(disabled=enable)
-        window["-FOLDER-"].update(disabled=enable)
-        window["-FOLDER BR 1-"].update(disabled=enable)
-        window["-FOLDER BR 2-"].update(disabled=enable)
+    def disable_UI(disable):
+        window["-CONVERT-"].update(disabled=disable)
+        window["-MV UP-"].update(disabled=disable)
+        window["-REMOVE-"].update(disabled=disable)
+        window["-MV DOWN-"].update(disabled=disable)
+        window["-ADD-"].update(disabled=disable)
+        window["-SAVE FOLDER-"].update(disabled=disable)
+        window["-FOLDER-"].update(disabled=disable)
+        window["-FOLDER BR 1-"].update(disabled=disable)
+        window["-FOLDER BR 2-"].update(disabled=disable)
 
 
     def enable_conversion_buttons():
@@ -227,7 +227,9 @@ def main():
         elif event == "-CONVERT-":
             save_path = ""
             if values["-SAVE FOLDER-"] == "":
-                save_path = os.getcwd()
+                aux_pth = values["-FOLDER-"]
+                save_path = os.path.join(aux_pth, "converted")
+                os.makedirs(save_path, exist_ok=True)
             else:
                 save_path = values["-SAVE FOLDER-"]
                 if not os.path.isdir(save_path):
@@ -237,7 +239,7 @@ def main():
             print("Converting files to MIDI ")
             disable_UI(True)
             sg.popup_ok("This may take a while.\nPlease be patient.")
-            convert_files_to_MIDI(convert_files, False, save_path)
+            convert_files_to_MIDI(convert_files, save_path)
             disable_UI(False)
             sg.popup_ok(f"Your MIDI files were saved in:\n{save_path}")
 

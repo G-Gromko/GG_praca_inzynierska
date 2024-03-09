@@ -96,7 +96,7 @@ Jednakże pomimo tego dynamicznego rozwoju, modele te są ograniczone zazwyczaj 
 
 Większość dostępnej literatury skupia się problemie wydobywania danych już z odpowiednio przygotowanych obrazów, które mogą być w pewien sposób zniekształcone, jednak proces digitalizacji zapisów nutowych dzisiaj odbywa się zazwyczaj przy pomocy zdjęć zrobionych przy użyciu przenośnych urządzeń, takich jak telefon wyposażony w aparat, zamiast skanerów. Jak takie podejście jest wygodniejsze dla użytkownika, gdyż w dzisiejszych czasach większość osób ma już przy sobie przez prawie cały czas urządzenia wyposażone w aparat, to niestety wszystkie układy optyczne wprowadzają dystorsję do wykonywanego obrazu, beczkową dla obiektywów szerokokątnych, czy poduszkową dla teleobiektywów, co powoduje niechciane zniekształcenia w zapisywanym obrazie. Kolejną wadą fotografowania dokumentów jest to, iż w przeciwieństwie do skanów, uzyskany obraz nie jest płaski i wyrównany z ewentualnym lekkim przechyleniem, które jest proste do poprawienia, tylko często posiada zniekształcenia we wszystkich wymiarach, jak na przykład gdy fotografuje się stronę książki, co skutkuje nieliniowymi wygięciami przy krawędziach stron. Powoduje to zmniejszenie skuteczności systemów, wymagając dodatkowego stopnia wstępnego przetwarzania obrazu, polegającego na usuwaniu wypaczenia, zanim zostanie on przekazany do odzyskania informacji przez wyuczony model.
 
-Dlatego też celem niniejszej pracy jest zaprojektowanie i stworzenie programu, który pozwoli na odczytanie informacji zawartych w zapisie nutowym na fortepian ze zdjęć zrobionych przez użytkownika, by mógł je on wygodnie zdigitalizować do pliku MIDI. 
+Dlatego też celem niniejszej pracy jest zaprojektowanie i stworzenie programu, który pozwoli na odczytanie informacji zawartych w zapisie nutowym na fortepian ze zdjęć zrobionych przez użytkownika, by mógł je on wygodnie zdigitalizować do plików MIDI. 
 
 Zakres pracy obejmuje stworzenie programu w języku Python wykorzystujący model głębokiego ucznia end-to-end oparty na rekurencyjnych sieciach neuronowych opracowany przez Antonio Ríos-Vilę wytrenowany na zbiorze danych GrandStaff\cite{Rios-Vila2023}, proces usuwania wypaczenia stworzony przez Matta Zuckera, oraz algorytm odnajdywania pozycji pięciolinii opracowany przez Mariusza Szwocha \cite{Szwoch2005} oraz otwartoźródłowych bibliotek przyśpieszających tworzenie programu.
 
@@ -110,7 +110,30 @@ Praca składa się z pięciu rozdziałów. Rozdział 1 obejmuje określenie spec
 \input{chapters/chapter5}
 
 \summary
-Tu podsumowanie z realizacji założeń, możliwości dalszej pracy
+%Tu podsumowanie z realizacji założeń, możliwości dalszej pracy.
+
+Rezultatem wynikającym z prac nad omawianym projektem jest powstanie programu, wykorzystującego techniki uczenia głębokiego, do rozpoznawania zapisu nutowego na fortepian ze zdjęć zrobionych przez użytkownika oraz plików PDF zawierających zapis nutowy.
+
+Pomimo zastosowania jednego z najnowocześniejszych modeli do rozpoznawania zapisu nutowego, nie udało się uzyskać zadowalającej dokładności i jakości transkrypcji, co powoduje iż konwersja uzyskanych informacji semantycznych ze zdjęć do formatu MIDI jest często niemożliwa. Uzyskane dane w wielu przypadkach posiadają błędy wymagające ręcznych poprawek, które tylko osoby z wiedzą muzyczną oraz doświadczeniem z formatem **kern i jego narzędziami byłyby w stanie naprawić. Spowodowało to, iż niestety nie udało się zrealizować założenia wygodnego archiwizowania zapisu nutowego do formatu MIDI, jednakże opracowywanie dokładniejszych modeli głębokiego uczenia znajduje się poza zakresem tematycznym tej pracy.
+
+Podczas pracy nad projektem autor zdobył cenne doświadczenie w pracy nad programami wykorzystującymi modele uczenia głębokiego, które w ostatnich latach widziały znaczny wzrost popularności, co jest szczególnie ważne w aktualnie bardzo aktywnie zmieniającym się rynku programistycznym. Czas spędzony nad projektowaniem i implementacją programu pozwolił autorowi na praktyczne zrozumienie procesu tworzenia programów komputerowych oraz istotności fazy projektowania w opracowywaniu oprogramowania.
+
+Całość pracy prezentuje się autorowi jako wartościowe i pouczające doświadczenie.
+
+\vspace{5mm}
+
+\subsection*{Możliwe kierunki rozwoju programu}
+
+\begin{itemize}
+	\item Zastosowanie wydajniejszych algorytmów wykrywania pięciolinii.
+	\item Zaimplementowanie dokładniejszych sposobów usuwania wypaczenia stron.
+	\item Opracowanie lepszych modeli głębokiego uczenia do rozpoznawania drukowanego zapisu nutowego na fortepian.
+	\item Stworzenie prawdziwego modelu end-to-end rozpoznającego nuty z całej strony, bez wcześniejszej potrzeby segmentacji obrazu na pięciolinie.
+	\item Dodanie możliwości odczytywania nut monofonicznych i homofonicznych.
+	\item Rozbudowanie o odczytywanie ręcznego zapisu nutowego.
+\end{itemize}
+
+
 
 \bibliographystyle{plain}
 \bibliography{literatura}
