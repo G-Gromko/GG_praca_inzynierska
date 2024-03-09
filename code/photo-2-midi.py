@@ -47,8 +47,7 @@ def main():
         [ sg.Button("↓", key="-MV DOWN-", size=(3,1)) ],
         [ sg.Button("", disabled=True, size=(0,31), button_color=("#64778d", "#64778d")) ],
     ]
-
-    # For now will only show the name of the file that was chosen
+    
     image_viewer_column = [
         [ sg.Text(size=(45, 1), key="-TOUT-") ],
         [ sg.Image(size=(720, 720), key="-IMAGE-") ],
@@ -81,7 +80,6 @@ def main():
 
     def disable_UI(enable):
         window["-CONVERT-"].update(disabled=enable)
-        # window["-ONE FILE-"].update(disabled=enable)
         window["-MV UP-"].update(disabled=enable)
         window["-REMOVE-"].update(disabled=enable)
         window["-MV DOWN-"].update(disabled=enable)
@@ -238,11 +236,10 @@ def main():
             
             print("Converting files to MIDI ")
             disable_UI(True)
-            sg.Popup(sg.popup_no_buttons("This may take a while.\nPlease be patient."))
-            # mockup()
+            sg.popup_ok("This may take a while.\nPlease be patient.")
             convert_files_to_MIDI(convert_files, False, save_path)
             disable_UI(False)
-            sg.Popup(sg.popup_no_buttons(f"Your MIDI files were saved in:\n{save_path}"))
+            sg.popup_ok(f"Your MIDI files were saved in:\n{save_path}")
 
 
     window.close()
