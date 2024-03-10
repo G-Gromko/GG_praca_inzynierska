@@ -33,7 +33,7 @@ def make_vocabulary(YSequences, pathToSave, nameOfVoc):
     #Vocabulary created
     w2i = {symbol:idx+1 for idx,symbol in enumerate(vocabulary)}
     i2w = {idx+1:symbol for idx,symbol in enumerate(vocabulary)}
-    
+
     w2i['<pad>'] = 0
     i2w[0] = '<pad>'
 
@@ -71,6 +71,6 @@ def save_bkern_output(output_path, array):
         transcription = transcription.replace("<t>", "\t")
         transcription = transcription.replace("<b>", "\n")
         transcription = transcription.replace("<s>", " ")
-    
+
         with open(f"{output_path}/{idx}.bekern", "w") as bfilewrite:
             bfilewrite.write(transcription)

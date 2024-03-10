@@ -28,7 +28,9 @@ Jest to wysokopoziomowy, wieloparadygmatowy język skryptowy ogólnego przeznacz
 	\item Wieloplatformowość
 \end{itemize}
 
-\section{PyTorch}
+\section{Wykorzystywane biblioteki}
+
+\subsection*{PyTorch}
 Otwartoźródłowa biblioteka uczenia maszynowego stworzona przez Facebook AI Research (teraz Meta AI), bazowana na Pythonie i Torch-u, głównie używana do aplikacji uczenia maszynowego używających procesorów graficznych i TPU. PyTorch jest preferowany przez wielu badaczy sztucznej inteligencji przez używanie dynamicznych grafów obliczeń, co pozwala na uruchamianie i testowanie małych części kodu w czasie rzeczywistym bez potrzeby implementacji całości kodu, móc sprawdzić czy dana część kodu działa czy nie.
 
 Głównymi zaletami PyTorch są:
@@ -37,8 +39,11 @@ Głównymi zaletami PyTorch są:
 	\item Automatyczne różnicowanie dla tworzenia i trenowania głębokich sieci neuronowych
 \end{itemize}
 
-\section{OpenCV}
+\subsection*{OpenCV}
 OpenCV (Open Source Computer Vision Library) jest otwartoźródłową biblioteką widzenia maszynowego oraz uczenia maszynowego. Została ona zbudowana by dostarczyć wspólną infrastrukturę dla aplikacji rozpoznawania obrazów oraz przyśpieszenia użycia percepcji maszynowej w produktach komercyjnych.
 
-\section{Pillow}
+\subsection*{Pillow}
 Biblioteka będąca odgałęzieniem Python Imaging Library (PIL), która to dodaje możliwości przetwarzania obrazów do programów pisanych w języku Python. Dodaje ona szerokie wsparcie formatów plików, wydajną wewnętrzną reprezentację oraz duże możliwości przetwarzania obrazów. 
+
+\subsection*{Lightning}
+Ułatwia implementowanie modeli uczenia głębokiego poprzez strukturyzację podstawowego kodu biblioteki \textit{PyTorch}. Umożliwia ona na trenowanie z użyciem wielu układów GPU w tym samym czasie jak i użytkowanie specjalistycznych jednostek TPU bez zmian w kodzie. Dodatkowo udostępnianie są takie możliwości jak tworzenie punktów zapisu w trakcie uczenia, wcześniejsze zatrzymanie procesu uczenia przy osiągnięciu określonych parametrów oraz 16 bitową precyzję. Modele uzyskane przy jej użyciu mogą być używane na dowolnej konfiguracji sprzętowej, na której jest możliwe zainstalowanie tej biblioteki. 

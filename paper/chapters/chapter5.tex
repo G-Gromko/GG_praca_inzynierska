@@ -145,7 +145,7 @@ Gdy analiza okienek się zakończy, jeśli lista pozycji nie jest pusta, to jest
 
 Proces usuwania wypaczenia obrazu jest dostosowaną pod potrzeby projektu wersją programu opracowanego przez Matta Zuckera.
 
-Dzięki rozwojowi uczenia maszynowego, by uzyskać dużą skuteczność odczytywania informacji z zapisów nutowych, nie jest wymagane przekształcanie zniekształconego obrazu tak, by pięciolinie posiadały blisko idealnie proste linie, co przy użyciu tradycyjnych metod, jak w wypadku wertykalnego zapadania. Jednakże wytrenowane modele uczenia maszynowego dalej preferują by dane które dostają były jak najbliżej ideału, by były w stanie jak najdokładniej wydobyć dane. Dodatkowo używany w tym projekcie model został wytrenowany na danych zawierających pięciolinie zgrupowane klamrą (akoladą) po dwie, reprezentując zapis dla fortepianu, gdzie radzi sobie również bardzo dobrze z wydobywaniem niezbędnych informacji z pojedynczych pięciolinii, jednak nie jest to cała strona zapisana nutami, więc do jego poprawnego działania niezbędna jest odpowiednia segmentacja danego obrazu, na kawałki zrozumiałe dla modelu, co wymaga, by taki obraz dało się w poprawny sposób pociąć na mniejsze tak, by nie zawierały niepotrzebnych części innych pięciolinii, do czego potrzebne jest właśnie usunięcie wypaczeń obecnych na zdjęciu.
+Dzięki rozwojowi uczenia maszynowego, by uzyskać dużą skuteczność odczytywania informacji z zapisów nutowych, nie jest wymagane przekształcanie zniekształconego obrazu tak, by pięciolinie posiadały blisko idealnie proste linie, co przy użyciu tradycyjnych metod, jak w wypadku wertykalnego zapadania. Jednakże wytrenowane modele uczenia maszynowego dalej preferują by dane które dostają były jak najbliżej ideału, by były w stanie jak najdokładniej wydobyć dane. Dodatkowo używany w tym projekcie model został wytrenowany na danych zawierających pięciolinie zgrupowane klamrą (akoladą) po dwie, jednak nie jest to cała strona zapisana nutami, więc do jego poprawnego działania niezbędna jest odpowiednia segmentacja danego obrazu na mniejsze części zrozumiałe dla modelu, co wymaga, by taki obraz dało się w poprawny sposób pociąć na mniejsze tak, by nie zawierały niepotrzebnych części innych pięciolinii, do czego potrzebne jest właśnie usunięcie wypaczeń obecnych na zdjęciu.
 
 Z racji tego, że nuty często znajdują się w folderach, książkach i innych dokumentach piśmienniczych posiadających usztywniany grzbiet łączący wszystkie jego strony ze sobą, to bez usuwania pojedynczych stron, co często bywa destruktywne, nie da się zrobić takiemu zapisowi zdjęcia, na którym nie byłby on zniekształcony. To, wraz z potrzebą podzielenia obrazu na mniejsze kawałki w odpowiedni sposób powoduje, że krok usuwania wypaczeń jest niezbędny.
 
@@ -740,7 +740,7 @@ Tak zmodyfikowane dane wejściowe są następnie przekazywane do warstwy LSTM de
 
 Zwracanymi przez dekoder danymi jest wynik działania funkcji \pyth|log_softmax()|, działającej na trzecim wymiarze wejściowego tensora, która nakłada funkcję softmax, na którą to nakładany jest logarytm.
 
-\subsection{Zbiór danych GrandStaff}
+\section{Zbiór danych GrandStaff}
 
 Zbiór danych \textit{GrandStaff} jest pierwszym zbiorem danych zawierającym polifoniczne zapisy nutowe na fortepian, przeznaczonym do uczenia rozwiązań end-to-end. Jego nazwa odnosi się do angielskiego słowa \textit{grandstaff}, określającego zespół dwóch pięciolinii połączonych klamrą na początku, przeznaczonych do grania na fortepianie.
 Składa się on z 53882 syntetycznie stworzonych obrazów pojedynczych linii zapisu nutowego na fortepian, wraz z ich reprezentacjami w formatach **kern i BEKERN oraz wersjami obrazu przedstawiającymi zniekształcony zapis nutowy.
@@ -774,9 +774,9 @@ Kolejną ważną cechą tego zbioru danych jest posiadanie przez niego zapisu nu
 	\label{fig:GS-normal-distorted}
 \end{figure}
 
-\subsection{Trenowanie modelu głębokiego uczenia} \label{ModelTraining}
+\section{Trenowanie modelu głębokiego uczenia} \label{ModelTraining}
 
-Trenowanie odbywało się na platformie Vast.ai, na zdalnej instancji wyposażonej w układ NVidia GeForce RTX 3090 oraz 103 GB pamięci operacyjnej, przez 25 epok, z użyciem zniekształconych wersji zapisu nutowego zbioru danych GrandStaff. Łączny czas uczenia modelu wyniósł około 24 godzin.
+Trenowanie odbywało się na platformie vast.ai, na zdalnej instancji wyposażonej w układ NVidia GeForce RTX 3090 oraz 103 GB pamięci operacyjnej, przez 25 epok, z użyciem zniekształconych wersji zapisu nutowego zbioru danych GrandStaff. Łączny czas uczenia modelu wyniósł około 24 godzin.
 
 Podczas trenowania modelu wykorzystanie pamięci układu GPU wyniosło około 14 GB, oraz około 15 GB pamięci operacyjnej.
 
@@ -791,6 +791,8 @@ W testach syntetycznych przeprowadzonych na testowym podzbiorze zbioru danych Gr
 
 Uzyskane wyniki są zbliżone do tych uzyskanych przez autorów modelu\cite{Rios-Vila2023}.
 
+\subsection{Główna funkcja uczenia modelu}
+
 \begin{lstlisting}[caption={Główna funkcja procesu uczenia modelu.}, label={model-training-main}]
 def main(train_path, val_path, test_path, encoding="krn", model_name="CRNN"):
 	outpath = f"./out"
@@ -798,42 +800,49 @@ def main(train_path, val_path, test_path, encoding="krn", model_name="CRNN"):
 	os.makedirs(f"{outpath}/hyp", exist_ok=True)
 	os.makedirs(f"{outpath}/gt", exist_ok=True)
 	
-	train_dataset, val_dataset, test_dataset = load_dataset(train_path, val_path, test_path, corpus_name=f"GrandStaff_{encoding}")
+	train_dataset, val_dataset, test_dataset = load_dataset(train_path, val_path, test_path)
 	
 	_, i2w = train_dataset.get_dictionaries()
 	
-	train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc, shuffle=True)
-	val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
-	test_dataloader = DataLoader(test_dataset, batch_size=1, num_workers=20, collate_fn=batch_preparation_ctc)
+	train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc, shuffle=True)
+	val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc)
+	test_dataloader = DataLoader(test_dataset, batch_size=1, num_workers=6, collate_fn=batch_preparation_ctc)
 	
 	maxheight, maxwidth = train_dataset.get_max_hw()
 	
-	model, torchmodel = get_model(maxwidth=maxwidth, maxheight=maxheight, in_channels=1, blank_idx=len(i2w), out_size=train_dataset.vocab_size()+1, i2w=i2w, model_name=model_name, output_path=outpath)
+	lightning_model, torch_model = get_model(maxwidth=maxwidth, maxheight=maxheight, in_channels=1, blank_idx=len(i2w), out_size=train_dataset.vocab_size()+1, i2w=i2w, model_name=model_name, output_path=outpath)
 	
 	wandb_logger = WandbLogger(project='E2E_Pianoform', name=model_name)
 	
-	early_stopping = EarlyStopping(monitor='val_SER', min_delta=0.01, patience=5, mode="min", verbose=False)
+	early_stopping = EarlyStopping(monitor='val_SER', min_delta=0.01, patience=5, mode="min")
 	
 	checkpointer = ModelCheckpoint(dirpath=f"./weights/", filename=f"{model_name}", monitor="val_SER", mode='min', save_top_k=3, verbose=True)
 	
 	trainer = Trainer(max_epochs=25, logger=wandb_logger, callbacks=[checkpointer, early_stopping])
 	
-	trainer.fit(model, train_dataloader, val_dataloader)
+	trainer.fit(lightning_model, train_dataloader, val_dataloader)
 	
-	model = LighntingE2EModelUnfolding.load_from_checkpoint(checkpointer.best_model_path, model=torchmodel)
+	model = LighntingE2EModelUnfolding.load_from_checkpoint(checkpointer.best_model_path, model=torch_model)
 	trainer.test(model, test_dataloader)
 	wandb.finish()
 \end{lstlisting}
 
+Główna funkcja trenowania modelu pobiera jako argumenty ścieżki do plików partycjonowania zbioru danych, nazwę typu kodowania informacji oraz nazwę trenowanego modelu.
 
+Rozpoczyna swoje działanie poprzez utworzenie niezbędnych katalogów, po czym przystępuje do ładowania zbioru treningowego, walidacyjnego oraz testowego na podstawie przekazanych plików partycjonowania. 
 
+Gdy zbiory te zostaną załadowane następuje pozyskanie słowników ze zbioru do trenowania, które są niezbędne do poprawnego pozyskiwania informacji z obrazów.
 
+Po otrzymaniu słowników tworzone są obiekty \pyth|DataLoader|, zawierające przypisane im zbiory, sampler oraz iterator po zbiorze danych. Każdy z tych obiektów ma przypisany rozmiar serii na $1$, sześć podprocesów zajmujących się ładowaniem  danych, oraz funkcję zestawiającą dane serii na \pyth|batch_preparation_ctc|, która przygotowuje dane wejściowe do odpowiedniego formatu. \pyth|train_dataloader| ma dodatkowo określone przetasowanie na prawdziwe, by ograniczyć możliwość nadmiernego dopasowania modelu do zbioru treningowe, gdyby był okazywany modelowi w tej samej kolejności w każdej epoce.
 
+Kolejnym ważnym krokiem jest utworzenie dwóch obiektów modeli, gdzie \pyth|lightning_model| jest obiektem biblioteki \textit{Lightning} na którym wykonywane będzie uczenie, oraz \pyth|torch_model|, który jest głównym szkieletem modelu napisanym w bibliotece \textit{PyTorch}.
 
+Następnie tworzony jest obiekt loggera z biblioteki \textit{WandB}, dzięki której zapisywane są dane całego procesu uczenia w chmurze, dając lepszy pogląd na zachowanie się modelu podczas tej operacji. W dalszej kolejności tworzony jest obiekt wczesnego zatrzymania, z określonymi parametrami nadzorowania wartości SER (Sequence Error Rate), minimalną zmianą na poziomie $0,01$ przez $5$ epok by nastąpiło zatrzymanie procesu.
 
+Później tworzony jest obiekt klasy \pyth|ModelCheckpoit|, którego zadaniem jest tworzenie punktów zapisu modelu po każdej epoce, zapisując trzy najlepsze modele według kryterium najmniejszego parametru SER, w określonym argumentem katalogu.
 
+By umożliwić trenowanie modelu kreowany jest obiekt klasy \pyth|Trainer|, z określeniem ile maksymalnie epok może pracować, wskazaniem loggera oraz przekazaniem wcześniej utworzonych obiektów punktów zapisu oraz wczesnego zatrzymania.
 
+W momencie posiadania wszystkich niezbędnych danych i obiektów, wywoływana jest metoda \pyth|fit()| obiektu trenera, której przekazywany jest model, oraz moduły ładujące dane zbioru treningowego oraz walidacyjnego.
 
-
-
-
+Po zakończeniu trenowania modelu, tworzony jest nowy obiekt modelu na podstawie najlepszego punktu zapisu, który to jest używany do przeprowadzenia testu na zbiorze testowym, poprzez wywołanie metody \pyth|test()| obiektu trenera, by ocenić jakoś uzyskanego modelu na wcześniej nie przedstawianych mu danych.

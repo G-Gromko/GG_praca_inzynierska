@@ -8,7 +8,7 @@ class DepthSepConv2D(nn.Module):
         super(DepthSepConv2D, self).__init__()
 
         self.padding = None
-        
+
         padding = [int((k-1)/2) for k in kernel_size]
 
         if kernel_size[0] % 2 == 0 or kernel_size[1] % 2 == 0:
@@ -27,7 +27,7 @@ class DepthSepConv2D(nn.Module):
             x = F.pad(x, self.padding)
         if self.activation:
             x = self.activation(x)
-        
+
         x = self.point_conv(x)
 
         return x
@@ -38,7 +38,7 @@ class MixDropout(nn.Module):
 
         self.dropout = nn.Dropout(dropout_prob)
         self.dropout2D = nn.Dropout2d(dropout_2d_prob)
-    
+
     def forward(self, inputs):
         if random.random() < 0.5:
             return self.dropout(inputs)
@@ -63,20 +63,20 @@ class ConvolutionalBlock(nn.Module):
 
         if pos == 1:
             x = self.dropout(x)
-        
+
         x = self.conv2(x)
         x = self.activation(x)
 
         if pos == 2:
             x = self.dropout(x)
-        
+
         x = self.normLayer(x)
         x = self.conv3(x)
         x = self.activation(x)
 
         if pos == 3:
             x = self.dropout(x)
-        
+
         return x
 
 class DSCBlock(nn.Module):
@@ -132,17 +132,17 @@ class Encoder(nn.Module):
             DSCBlock(in_c=512, out_c=512, stride=(1,1), dropout = dropout),
             DSCBlock(in_c=512, out_c=512, stride=(1,1), dropout = dropout)
         ])
-    
+
     def forward(self, x):
         for layer in self.conv_blocks:
             x = layer(x)
-        
+
         for layer in self.dscblocks:
             xt = layer(x)
             x = x + xt if x.size() == xt.size() else xt
 
         return x
-    
+
 class RecurrentScoreUnfolding(nn.Module):
 
     def __init__(self, out_cats):
@@ -177,8 +177,8 @@ class E2EScore_CRNN(nn.Module):
         x = self.encoder(inputs)
         x = self.decoder(x)
         return x
-    
+
 def get_crnn_model(in_channels, out_size):
     model = E2EScore_CRNN(in_channels=in_channels, out_cats=out_size)
-    
+
     return model

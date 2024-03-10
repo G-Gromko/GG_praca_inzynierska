@@ -8,8 +8,8 @@ import lightning as L
 
 from torchinfo import summary
 from itertools import groupby
-from ML_model.model.eval_functions import get_metrics
-from ML_model.model.e2e_unfolding import get_crnn_model
+from eval_functions import get_metrics
+from e2e_unfolding import get_crnn_model
 
 class LighntingE2EModelUnfolding(L.LightningModule):
     def __init__(self, model, blank_idx, i2w, output_path) -> None:
@@ -20,7 +20,7 @@ class LighntingE2EModelUnfolding(L.LightningModule):
         self.i2w = i2w
         self.accum_ed = 0
         self.accum_len = 0
-        
+
         self.dec_val_ex = []
         self.gt_val_ex = []
         self.img_val_ex = []
@@ -32,7 +32,7 @@ class LighntingE2EModelUnfolding(L.LightningModule):
 
     def forward(self, input):
         return self.model(input)
-    
+
     def configure_optimizers(self):
         return optim.Adam(self.model.parameters(), lr=1e-4)
 
@@ -54,7 +54,7 @@ class LighntingE2EModelUnfolding(L.LightningModule):
         for c in out_best:
             if c.item() != self.blank_idx:
                 decoded.append(c.item())
-        
+
         decoded = [self.i2w[tok] for tok in decoded]
         gt = [self.i2w[int(tok.item())] for tok in Y[0]]
 
@@ -62,7 +62,7 @@ class LighntingE2EModelUnfolding(L.LightningModule):
 
     def validation_step(self, val_batch, batch_idx):
         dec, gt = self.compute_prediction(val_batch)
-        
+
         dec = "".join(dec)
         dec = dec.replace("<t>", "\t")
         dec = dec.replace("<b>", "\n")
@@ -76,8 +76,8 @@ class LighntingE2EModelUnfolding(L.LightningModule):
         self.dec_val_ex.append(dec)
         self.gt_val_ex.append(gt)
 
-    def on_validation_epoch_end(self):        
-        
+    def on_validation_epoch_end(self):
+
         cer, ser, ler = get_metrics(self.dec_val_ex, self.gt_val_ex)
 
         self.log('val_CER', cer)
@@ -91,7 +91,7 @@ class LighntingE2EModelUnfolding(L.LightningModule):
 
     def test_step(self, test_batch, batch_idx):
         dec, gt = self.compute_prediction(test_batch)
-        
+
         dec = "".join(dec)
         dec = dec.replace("<t>", "\t")
         dec = dec.replace("<b>", "\n")
@@ -105,21 +105,21 @@ class LighntingE2EModelUnfolding(L.LightningModule):
 
         with open(f"{self.out_path}/hyp/{batch_idx}.krn", "w+") as krnfile:
             krnfile.write(dec)
-        
+
         with open(f"{self.out_path}/gt/{batch_idx}.krn", "w+") as krnfile:
             krnfile.write(gt)
 
         self.dec_val_ex.append(dec)
         self.gt_val_ex.append(gt)
         self.img_val_ex.append((255.*test_batch[0].squeeze(0)))
-    
+
     def on_test_epoch_end(self) -> None:
         cer, ser, ler = get_metrics(self.dec_val_ex, self.gt_val_ex)
 
         self.log('val_CER', cer)
         self.log('val_SER', ser)
         self.log('val_LER', ler)
-        
+
         columns = ['Image', 'PRED', 'GT']
         data = []
 
@@ -128,9 +128,9 @@ class LighntingE2EModelUnfolding(L.LightningModule):
 
         for index in random_indices:
             data.append([wandb.Image(self.img_val_ex[index]), "".join(self.dec_val_ex[index]), "".join(self.gt_val_ex[index])])
-        
+
         table = wandb.Table(columns= columns, data=data)
-        
+
         self.logger.experiment.log(
             {'Test samples': table}
         )
@@ -140,23 +140,8 @@ class LighntingE2EModelUnfolding(L.LightningModule):
 
         return ser
 
-    def predict(self, input):
-        pred = self.forward(input)
-        pred = pred.permute(1,0,2).contiguous()
-        pred = pred[0]
-        out_best = torch.argmax(pred,dim=1)
-        out_best = [k for k, g in groupby(list(out_best))]
-        decoded = []
-        for c in out_best:
-            if c.item() != self.blank_idx:
-                decoded.append(c.item())
-
-        decoded = [self.i2w[tok] for tok in decoded]
-
-        return decoded
-
 def get_model(maxwidth, maxheight, in_channels, out_size, blank_idx, i2w, output_path):
     model = get_crnn_model(in_channels, out_size)
     lighningModel = LighntingE2EModelUnfolding(model=model, blank_idx=blank_idx, i2w=i2w, output_path=output_path)
     summary(lighningModel, input_size=([1, in_channels, maxheight, maxwidth]))
-    return lighningModel
+    return lighningModel, model

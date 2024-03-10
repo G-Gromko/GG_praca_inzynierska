@@ -8,7 +8,7 @@ from loguru import logger
 from rich.progress import track
 from torch.utils.data import Dataset
 from torchvision import transforms
-from ML_model.model.model_utils import check_and_retrieveVocabulary
+from model_utils import check_and_retrieveVocabulary
 
 @logger.catch
 def batch_preparation_ctc(data):
@@ -25,7 +25,7 @@ def batch_preparation_ctc(data):
     for i, img in enumerate(images):
         c, h, w = img.size()
         X_train[i, :, :h, :w] = img
-    
+
     max_length_seq = max([len(w) for w in gt])
     Y_train = torch.zeros(size=[len(gt),max_length_seq])
     for i, seq in enumerate(gt):
@@ -34,18 +34,18 @@ def batch_preparation_ctc(data):
     return X_train, Y_train, L, T
 
 @logger.catch
-def load_data(partition_file, resize_ratio, load_distorted=True, extension=".krn"):
+def load_data(partition_file, resize_ratio = 1, load_distorted=True, extension=".krn"):
     X = []
     Y = []
     with open(partition_file) as partfile:
         part_lines = partfile.read()
         part_lines = part_lines.split("\n")
-        for file_path in track(part_lines, description="Loading..."):
+        for f_path in track(part_lines, description="Loading..."):
             if extension != ".bekrn":
-                file_path = file_path.replace(".bekrn", extension)
+                f_path = f_path.replace(".bekrn", extension)
             krn = None
             krnlines = []
-            file_path = f"Data/{file_path}"
+            file_path = f"{f_path}"
             if os.path.isfile(file_path):
                 with open(file_path) as krnfile:
                     krn = krnfile.read()
@@ -95,7 +95,7 @@ class PoliphonicDataset(Dataset):
     def __getitem__(self, index):
         image = self.tensorTransform(self.x[index])
         gt = torch.from_numpy(np.asarray([self.w2i[token] for token in self.y[index]]))
-        
+
         return image, gt, (image.shape[2] // 8) * (image.shape[1] // 16), len(gt)
 
     def get_max_hw(self):
@@ -103,7 +103,7 @@ class PoliphonicDataset(Dataset):
         m_height = np.max([img.shape[0] for img in self.x])
 
         return m_height, m_width
-    
+
     def get_max_seqlen(self):
         return np.max([len(seq) for seq in self.y])
 
@@ -112,15 +112,15 @@ class PoliphonicDataset(Dataset):
 
     def get_gt(self):
         return self.y
-    
+
     def set_dictionaries(self, w2i, i2w):
         self.w2i = w2i
         self.i2w = i2w
         self.padding_token = w2i['<pad>']
-    
+
     def get_dictionaries(self):
         return self.w2i, self.i2w
-    
+
     def get_i2w(self):
         return self.i2w
 
@@ -129,7 +129,7 @@ def load_dataset(train_path=None, val_path=None, test_path=None, corpus_name=Non
     val_dataset = PoliphonicDataset(partition_file=val_path)
     test_dataset = PoliphonicDataset(partition_file=test_path)
 
-    w2i, i2w = check_and_retrieveVocabulary([train_dataset.get_gt(), val_dataset.get_gt(), test_dataset.get_gt()], "vocab/", f"{corpus_name}")
+    w2i, i2w = check_and_retrieveVocabulary([train_dataset.get_gt(), val_dataset.get_gt(), test_dataset.get_gt()], "./vocab/", f"{corpus_name}")
 
     train_dataset.set_dictionaries(w2i, i2w)
     val_dataset.set_dictionaries(w2i, i2w)
