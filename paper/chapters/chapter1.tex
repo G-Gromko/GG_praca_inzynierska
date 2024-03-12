@@ -2,7 +2,7 @@
 W tym rozdziale zawarto wymagania postawione programowi przeznaczonemu do odczytywania notacji muzycznej z plików graficznych oraz konwersją odczytanych danych do formatu MIDI.
 
 \section{Wymagania biznesowe}
-Nazwa programu to "Photo-2-MIDI". Przeznaczeniem oprogramowania jest umożliwienie użytkownikom zdigitalizowanie w przystępny sposób drukowanych zapisów nutowych ze zdjęć lub skanów do plików MIDI.
+Nazwa programu to "Photo-2-MIDI". Przeznaczeniem oprogramowania jest umożliwienie użytkownikom zdigitalizowanie w przystępny sposób drukowanych zapisów nutowych ze zdjęć lub skanów do plików **kern oraz MIDI.
 
 \section{Słownik skrótów i pojęć}
 
@@ -16,12 +16,18 @@ Nazwa programu to "Photo-2-MIDI". Przeznaczeniem oprogramowania jest umożliwien
 			\label{fig:chopin_impromptu}
 		\end{figure}
 		
-		\item format MIDI - (ang. Musical Instrument Digital Interface) popularny format plików, który w przeciwieństwie do standardowych formatów audio nie przenosi bezpośrednich informacji o dźwięku, tylko informacje o granych nutach, ich synchronizacji, trwaniu oraz głośności. 
+		\item format MIDI - (ang. Musical Instrument Digital Interface) popularny format plików, który w przeciwieństwie do standardowych formatów audio nie przenosi bezpośrednich informacji o dźwięku, tylko informacje o granych nutach, ich synchronizacji, trwaniu oraz głośności.
+		
+		\item format **kern - jeden z najpopularniejszych cyfrowych formatów zachodniego zapisu nutowego do komputerowej analizy muzyki
 	\end{enumerate}
 
 \section{Wymagania funkcjonalne}
 	\begin{enumerate}
-		\item Użytkownik może wprowadzić plik lub pliki zawierające drukowane pismo nutowe w standardowej zachodniej notacji nutowej w formatach PNG, JPG, PDF.
+		\item Możliwość wprowadzenia plików zawierających drukowane pismo nutowe w standardowej zachodniej notacji nutowej w formatach PNG, JPG, PDF.
+		\item Możliwość dodawania plików znajdujących się w różnych katalogach.
+		\item Możliwość usunięcia wybranego pliku z listy plików wybranych do konwersji.
+		\item Podgląd wybranych plików w celu weryfikacji ich zawartości.
+		\item Wyświetlenie powiadomienia o zakończonej operacji konwersji.
 	\end{enumerate}
 	
 	
@@ -30,5 +36,5 @@ Program wymaga do działania:
 	\begin{enumerate}
 		\item Języka Python w wersji 3.11
 		\item Systemu operacyjnego Linux
-		\item Około 2 GB wolnej pamięci operacyjnej
+		\item 2 GB wolnej pamięci operacyjnej
 	\end{enumerate}
