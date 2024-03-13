@@ -778,7 +778,13 @@ Kolejną ważną cechą tego zbioru danych jest posiadanie przez niego zapisu nu
 
 Trenowanie odbywało się na platformie \url{vast.ai}, na zdalnej instancji wyposażonej w układ NVidia GeForce RTX 3090 oraz 103 GB pamięci operacyjnej.
 
-Wytrenowano dwa modele, oba przez 25 epok, pierwszy na zbiorze Camera GrandStaff, drugi zaś na zbiorze GrandStaff. Łączny czas uczenia każdego z modeli wyniósł około 24 godzin.
+Do wynajętej instancji połączono się z pomocą SSH, a następnie zainstalowano na niej wszystkie niezbędne biblioteki i programy, które nie były częścią podstawowej konfiguracji kontenera Docker, a były wymagane do uczenia modelu. Gdy wszystkie niezbędne wymagania od strony środowiskowej zostały spełnione, przesłano na instancję pliki z kodem języka Python, zawierające program uczący model, oraz spakowany zbiór danych GrandStaff przy pomocy polecenia \pyth|scp|.
+
+Kolejno rozpakowano zbiór danych na instancji i utworzono pliki partycjonowania zbioru danych przy pomocy własnego skryptu, gdyż autorzy zbioru takowych plików nie dostarczyli. W dalszej kolejności dostosowano kod programu uczącego do struktury plików instancji, a następnie uruchomiono proces uczenia modelu na zbiorze zniekształconych zapisów nutowych. Najlepsze uzyskane punkty zapisu wytrenowanego modelu pobrano na lokalny komputer przy pomocy polecenia \pyth|scp|. 
+
+Po zakończeniu trenowania modelu, proces powtórzono, tym razem z udziałem niezniekształconych zapisów nutowych.
+
+Uzyskano tym sposobem dwa modele, oba trenowane przez 25 epok, pierwszy na zbiorze Camera GrandStaff, drugi zaś na zbiorze GrandStaff. Czas uczenia każdego z modeli wyniósł około 24 godzin.
 
 Podczas trenowania pierwszego modelu wykorzystanie pamięci układu GPU wyniosło około 14 GB, oraz około 15 GB pamięci operacyjnej, natomiast wykorzystanie pamięci układu GPU wyniosło około 9,4  GB, oraz około 19 GB pamięci operacyjnej przy trenowaniu modelu drugiego.
 
