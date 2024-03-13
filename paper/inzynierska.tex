@@ -20,7 +20,6 @@
 \usepackage{times}
 \usepackage{colortbl}
 \usepackage{hyperref}
-\usepackage{multibib}
 \usepackage{url}
 \usepackage{setspace}
 \usepackage{indentfirst}
@@ -34,7 +33,9 @@
 \usepackage{pythonhighlight}
 \usepackage{gensymb}
 \usepackage{pdfpages}
-%\usepackage[%backend=biber,refsegment=section,defernumbers=true,]{biblatex}
+\usepackage{biblatex}
+
+\addbibresource{literatura.bib}
 
 \lstset { %
 language=python,                  % choose the language of the code
@@ -110,7 +111,6 @@ Praca składa się z pięciu rozdziałów. Rozdział 1 obejmuje określenie spec
 \input{chapters/chapter5}
 
 \summary
-%Tu podsumowanie z realizacji założeń, możliwości dalszej pracy.
 
 Rezultatem wynikającym z prac nad omawianym projektem jest powstanie programu, wykorzystującego techniki uczenia głębokiego, do rozpoznawania zapisu nutowego na fortepian ze zdjęć zrobionych przez użytkownika oraz plików PDF zawierających zapis nutowy.
 
@@ -133,10 +133,12 @@ Całość pracy prezentuje się autorowi jako wartościowe i pouczające doświa
 	\item Rozbudowanie o odczytywanie ręcznego zapisu nutowego.
 \end{itemize}
 
-
-
-\bibliographystyle{plain}
-\bibliography{literatura}
+\nocite{*}
+\printbibheading
+\printbibliography[type=book, heading=subbibliography, title={Książki}]
+\printbibliography[type=article, heading=subbibliography, title={Artykuły}]
+\printbibliography[type=inproceedings, heading=subbibliography, title={Materiały konferencyjne}]
+\printbibliography[type=online, heading=subbibliography, title={Strony internetowe}]
 
 % spis tabel
 \listoftables

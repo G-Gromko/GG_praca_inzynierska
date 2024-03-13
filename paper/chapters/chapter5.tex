@@ -1,5 +1,5 @@
 \chapter{Implementacja programu}
-W rozdziale piątym zostały przedstawione najważniejsze fragmenty sposobu implementacji programu. 
+W rozdziale piątym zostały przedstawione najważniejsze fragmenty sposobu implementacji programu. Na początku opisany jest sposób realizacji detekcji pięciolinii, następnie omawiany jest proces usuwania wypaczania obrazów. Kolejną częścią jest opis implementacji modelu uczenia głębokiego oraz jego niestandardowych klas. W dalszej kolejności przedstawiony jest zbiór danych GrandStaff, na którym został wytrenowany model. Rozdział zamyka opis głównej funkcji procesu uczenia modelu.
 
 \section{Realizacja detekcji pięciolinii}
 
@@ -20,7 +20,7 @@ Proces detekcji pozycji pięciolinii na obrazie został zrealizowany przy pomocy
 
 \subsection{Realizacja detekcji pozycji wypaczonych pięciolinii na obrazie}
 
-\begin{lstlisting}[caption={\pyth|find_staves_points()| - funkcja odnajdywania pozycji pięciolinii na obrazie}, label={find-staves-points}, language=Python]
+\begin{lstlisting}[caption={\pyth|find_staves_points()| - funkcja odnajdywania pozycji pięciolinii na obrazie.}, label={find-staves-points}, language=Python]
 def find_staves_points(img, img_name, stride = 2):
 	img = enhance_image(img, img_name)
 	
@@ -143,7 +143,7 @@ Gdy analiza okienek się zakończy, jeśli lista pozycji nie jest pusta, to jest
 
 \section{Usuwanie wypaczenia obrazu}
 
-Proces usuwania wypaczenia obrazu jest dostosowaną pod potrzeby projektu wersją programu opracowanego przez Matta Zuckera.
+Proces usuwania wypaczenia obrazu jest dostosowaną pod potrzeby projektu wersją programu opracowanego przez Matta Zuckera\cite{Zucker2016}.
 
 Dzięki rozwojowi uczenia maszynowego, by uzyskać dużą skuteczność odczytywania informacji z zapisów nutowych, nie jest wymagane przekształcanie zniekształconego obrazu tak, by pięciolinie posiadały blisko idealnie proste linie, co przy użyciu tradycyjnych metod, jak w wypadku wertykalnego zapadania. Jednakże wytrenowane modele uczenia maszynowego dalej preferują by dane które dostają były jak najbliżej ideału, by były w stanie jak najdokładniej wydobyć dane. Dodatkowo używany w tym projekcie model został wytrenowany na danych zawierających pięciolinie zgrupowane klamrą (akoladą) po dwie, jednak nie jest to cała strona zapisana nutami, więc do jego poprawnego działania niezbędna jest odpowiednia segmentacja danego obrazu na mniejsze części zrozumiałe dla modelu, co wymaga, by taki obraz dało się w poprawny sposób pociąć na mniejsze tak, by nie zawierały niepotrzebnych części innych pięciolinii, do czego potrzebne jest właśnie usunięcie wypaczeń obecnych na zdjęciu.
 
@@ -176,7 +176,7 @@ Po uzyskaniu odpowiedniego modelu, parametry pozycji i kształtu zostają wyizol
 
 
 
-\begin{lstlisting}[caption={\pyth|dewarp_page()| - główna funkcja usuwania wypaczania obrazu}, label={dewarp-page}, language=Python]
+\begin{lstlisting}[caption={\pyth|dewarp_page()| - główna funkcja usuwania wypaczania obrazu.}, label={dewarp-page}, language=Python]
 def dewarp_page(img, img_name, staves_positions_in_list):
 	shape = img.shape[:2]
 	
@@ -277,7 +277,7 @@ W dalszej kolejności określane są położenia rogów strony poprzez utworzeni
 Ostatnim etapem działania tej funkcji jest stworzenie oddzielnych tablic dla współrzędnych $x$ i $y$, które są następnie wypełniane odpowiednio: \pyth|xcoords| współrzędnymi $x$ wszystkich punktów, przesuniętych względem skrajnego lewego punktu na rozważanej stronie, które są produktem skalarnym względem odchylenia osi $x$, \pyth|ycoords| średnią współrzędnych $y$ każdej wykrytej pięciolinii, która jest przesunięta względem skrajnego górnego punktu rozważanej strony, określone z produktu skalarnego współrzędnych $y$ punktów wykrytych pięciolinii. 
 
 \subsection{Realizacja ustalania początkowych parametrów modelu}
-\begin{lstlisting}[caption={\pyth| get_default_params()| - funkcja tworząca początkowe parametry obrazu}, label={get-default-params}, language=Python]
+\begin{lstlisting}[caption={\pyth| get_default_params()| - funkcja tworząca początkowe parametry obrazu.}, label={get-default-params}, language=Python]
 def get_default_params(corners, ycoords, xcoords):
 	page_width = np.linalg.norm(corners[1] - corners[0])
 	page_height = np.linalg.norm(corners[-1] - corners[0])
@@ -313,7 +313,7 @@ Wektory translacji i rotacji strony uzyskiwane są z wyniku działania funkcji \
 
 
 \subsection{Realizacja tworzenia tablicy indeksującej punkty kluczowe}
-\begin{lstlisting}[caption={\pyth|make_keypoint_index()| - funkcja tworząca indeksy punktów kluczowych}, label={make-keypoint-index}, language=Python]
+\begin{lstlisting}[caption={\pyth|make_keypoint_index()| - funkcja tworząca indeksy punktów kluczowych.}, label={make-keypoint-index}, language=Python]
 def make_keypoint_index(span_counts):	
 	no_of_spans = len(span_counts)
 	no_of_points = sum(span_counts)
@@ -336,14 +336,14 @@ Funkcja rozpoczyna działanie inicjując zmienne \pyth|no_of_spans|, przechowuj�
 
 Następnie w pętli for, zaczynając od drugiego elementu, ustawiane są dla takiej liczby pozycji w liście \pyth|keypoint_index| wartości na drugiej pozycji każdego edytowanego elementu, określające pozycję indeksu współrzędnej $y$ w liście parametrów, odpowiadającą pozycji na płaskiej stronie, ile elementów zawiera dana rozpiętość punktów.
 
-Po przejściu pętli, używając funkcji \pyth|arange()| z biblioteki \textit{NumPy}, ustawiane są na elementach tablicy \pyth|keypoint_index|, od drugiego elementu w górę, na pierwszym miejscu elementów, indeksy współrzędnych $x$ punktów kluczowych.
+Po przejściu pętli, używając funkcji \lstinline|arange| z biblioteki \textit{NumPy}, ustawiane są na elementach tablicy \pyth|keypoint_index|, od drugiego elementu w górę, na pierwszym miejscu elementów, indeksy współrzędnych $x$ punktów kluczowych.
 
 Uzyskana tablica składa się z par indeksów punktów kluczowych znajdujących się w tablicy parametrów, przy wstępnym założeniu płaskiej strony.
 
 
-\subsection{project xy}
+\subsection{Realizacja funkcji rzutującej punkty trójwymiarowe na płaszczyznę obrazu}
 
-\begin{lstlisting}[caption={\pyth|project_xy()| - funkcja rzutująca punkty}, label={project-xy}, language=Python]
+\begin{lstlisting}[caption={\pyth|project_xy()| - funkcja rzutująca punkty obliczonego trójwymiarowego kształtu strony na płaszczyznę obrazu.}, label={project-xy}, language=Python]
 def project_xy(xy_coords, parameter_vector):	
 	alpha, beta = tuple(parameter_vector[CUBIC_IDX])
 	poly = np.array([ alpha + beta, -2*alpha - beta, alpha, 0])
@@ -358,7 +358,7 @@ def project_xy(xy_coords, parameter_vector):
 	return image_points
 \end{lstlisting}
 
-Funkcja \pyth|project_xy()| służy do rzutowania punktów 
+Funkcja \pyth|project_xy()| służy do rzutowania punktów obliczonego trójwymiarowego kształtu strony na płaszczyznę obrazu.
 
 Zaczyna ona poprzez uzyskanie parametrów $\alpha$ oraz $\beta$ funkcji sklejanej z wektora parametrów przekazanego jako argument funkcji, następnie z pozyskanych wartości tworzy tablicę \pyth|poly| będącą tablicą parametrów wielomianu.
 
@@ -373,7 +373,7 @@ Z wyniku rzutowania punktów pozyskiwane są punkty obrazu, które następnie zo
 
 \subsection{Realizacja optymalizacji parametrów modelu}
 
-\begin{lstlisting}[caption={\pyth|optimize_params()| - funkcja optymalizucjąca parametry modelu}, label={optimize-params}, language=Python]
+\begin{lstlisting}[caption={\pyth|optimize_params()| - funkcja optymalizucjąca parametry modelu.}, label={optimize-params}, language=Python]
 def optimize_params(destination_points, span_counts, params):
 	keypoint_index = make_keypoint_index(span_counts)
 	
@@ -400,7 +400,7 @@ Gdy optymalizacja dobiega końca, ze zmiennej \pyth|result| wyciągane są warto
 
 \subsection{Realizacja remapowania obrazu}
 
-\begin{lstlisting}[caption={\pyth|remap_image()| - funkcja remapowania wypaczonego obrazu}, label={remap-image}, language=Python]
+\begin{lstlisting}[caption={\pyth|remap_image()| - funkcja remapowania wypaczonego obrazu.}, label={remap-image}, language=Python]
 def remap_image(img, page_dimensions, params):
 	height = 0.5 * page_dimensions[1] * img.shape[0]
 	height = utils.round_nearest_multiple(height, REMAP_DECIMATE)
@@ -460,7 +460,7 @@ Po zakończonym remapowaniu, otrzymany obraz jest progowany adaptacyjnie, by otr
 \section{Model głębokiego uczenia do rozpoznawania zapisu nutowego} \label{Model}
 Użyty model głębokiego uczenia został opracowany przez Antonio Ríosa-Vilę et. al.\cite{Rios-Vila2023}. 
 
-\begin{lstlisting}[caption={\pyth|E2EScore_CRNN| - klasa modelu głębokiego uczenia do rozpoznawania zapisu nutowego}, label={E2E-CRNN}]
+\begin{lstlisting}[caption={\pyth|E2EScore_CRNN| - klasa modelu głębokiego uczenia do rozpoznawania zapisu nutowego.}, label={E2E-CRNN}]
 class E2EScore_CRNN(nn.Module):
 
 	def __init__(self, in_channels, out_cats):
@@ -483,7 +483,7 @@ W metodzie \pyth|forward| na podstawie danych wejściowych tworzona jest przez e
 
 
 \subsection{Realizacja enkodera modelu głębokiego uczenia} \label{Encoder}
-\begin{lstlisting}[caption={\pyth|Encoder| - klasa enkodera modelu głębokiego uczenia}, label={encoder}]
+\begin{lstlisting}[caption={\pyth|Encoder| - klasa enkodera modelu głębokiego uczenia.}, label={encoder}]
 class Encoder(nn.Module):
 	
 	def __init__(self, in_channels, dropout=0.4):
@@ -535,7 +535,7 @@ Funkcja \pyth|forward()| przechodzi najpierw pętlą przez wszystkie dwuwymiarow
 
 
 \subsubsection{Realizacja bloku konwolucyjnego} \label{ConvBlock}
-\begin{lstlisting}[caption={\pyth|ConvolutionalBlock| - klasa bloku konwolucyjnego}, label={convblock}]
+\begin{lstlisting}[caption={\pyth|ConvolutionalBlock| - klasa bloku konwolucyjnego.}, label={convblock}]
 class ConvolutionalBlock(nn.Module):
 def __init__(self, in_c, out_c, stride=(1,1), kernel=3, activation=nn.ReLU, dropout=0.4):
 	super(ConvolutionalBlock, self).__init__()
@@ -580,7 +580,7 @@ Następnie przekazuje dane wejściowe do pierwszej warstwy konwolucyjnej, po kt�
 
 
 \subsubsection{Realizacja separującego wgłębnie bloku konwolucyjnego} \label{DSCBlock}
-\begin{lstlisting}[caption={\pyth|DSCBlock| - klasa głębokiego separującego bloku konwolucyjnego}, label={dscblock}]
+\begin{lstlisting}[caption={\pyth|DSCBlock| - klasa głębokiego separującego bloku konwolucyjnego.}, label={dscblock}]
 class DSCBlock(nn.Module):
 
 	def __init__(self, in_c, out_c, stride=(2, 1), activation=nn.ReLU, dropout=0.4):
@@ -625,7 +625,7 @@ Metoda \pyth|forward()| na początku działania losuje po której warstwie konwo
 
 \subsubsection{Realizacja usuwania mieszanego}
 
-\begin{lstlisting}[caption={\pyth|MixDroput| - klasa usuwania mieszanego}, label={mix-dropout}]
+\begin{lstlisting}[caption={\pyth|MixDroput| - klasa usuwania mieszanego.}, label={mix-dropout}]
 class MixDropout(nn.Module):
 	def __init__(self, dropout_prob=0.4, dropout_2d_prob=0.2):
 		super(MixDropout, self).__init__()
@@ -648,7 +648,7 @@ W funkcji \pyth|forward| losowo określane jest, z równym prawdopodobieństwem,
 
 \subsubsection{Realizacja wgłębnie separującej konwolucji}
 
-\begin{lstlisting}[caption={\pyth|DepSepConv2D| - klasa wgłębnie separującej konwolucji dwuwymiarowej}, label={DepSepConv}]
+\begin{lstlisting}[caption={\pyth|DepSepConv2D| - klasa wgłębnie separującej konwolucji dwuwymiarowej.}, label={DepSepConv}]
 class DepthSepConv2D(nn.Module):
 	def __init__(self, in_channels, out_channels, kernel_size, activation=None, padding=True, stride=(1,1), dilation=(1,1)):
 		super(DepthSepConv2D, self).__init__()
@@ -691,7 +691,7 @@ Następnie tworzona jest warstwa konwolucji punktowej \pyth|point_conv|, będąc
 Metoda \pyth|forward| najpierw wykonuje wgłębną konwolucję na danych wejściowych, i jeśli podczas inicjalizacji pole \pyth|padding| zostało określone, wykonywana jest operacja \pyth|F.pad|, nakładająca obliczony padding na tensor wejściowy. Następnie jeśli aktywacja została określona, jest ona wykonywana. Ostatnim krokiem wykonywanym na danych jest konwolucja punktowa, której wynik jest zwracany.
 
 \subsection{Realizacja dekodera modelu głębokiego uczenia} \label{Decoder}
-\begin{lstlisting}[caption={\pyth|Decoder| - klasa dekodera modelu głębokiego uczenia}, label={decoder}]
+\begin{lstlisting}[caption={\pyth|Decoder| - klasa dekodera modelu głębokiego uczenia.}, label={decoder}]
 class Decoder(nn.Module):
 
 	def __init__(self, out_cats):
@@ -776,7 +776,7 @@ Kolejną ważną cechą tego zbioru danych jest posiadanie przez niego zapisu nu
 
 \section{Trenowanie modelu głębokiego uczenia} \label{ModelTraining}
 
-Trenowanie odbywało się na platformie vast.ai, na zdalnej instancji wyposażonej w układ NVidia GeForce RTX 3090 oraz 103 GB pamięci operacyjnej.
+Trenowanie odbywało się na platformie \url{vast.ai}, na zdalnej instancji wyposażonej w układ NVidia GeForce RTX 3090 oraz 103 GB pamięci operacyjnej.
 
 Wytrenowano dwa modele, oba przez 25 epok, pierwszy na zbiorze Camera GrandStaff, drugi zaś na zbiorze GrandStaff. Łączny czas uczenia każdego z modeli wyniósł około 24 godzin.
 
