@@ -1,6 +1,6 @@
-\chapter{Technologie wykorzystane w projekcie}
+\chapter{Technologie wykorzystane w~projekcie}
 
-W drugim rozdziale przedstawiono technologie wykorzystane w implementacji programu. Głównymi czynnikami wyboru danych technologii była łatwość użycia oraz ich możliwości.
+W drugim rozdziale przedstawiono technologie wykorzystane w~implementacji programu.\linebreak Głównymi czynnikami wyboru danych technologii była łatwość użycia oraz ich możliwości.
 
 Najważniejszymi punktami wybranych technologii są m.in.:
 \begin{itemize}
@@ -12,38 +12,38 @@ Najważniejszymi punktami wybranych technologii są m.in.:
 	\item Dostępności informacji dot. technologii
 \end{itemize}
 
-Dzięki powyższym cechom wykazywanym przez użyte technologie mamy zapewnioną szybkość tworzenia oprogramowania, gdzie w przypadku napotkania błędów w procesie jego kreacji możemy liczyć na pomoc społeczności w jego rozwiązaniu jak i szeroką gamę wcześniej stworzonych narzędzi.
+Dzięki powyższym cechom wykazywanym przez użyte technologie mamy zapewnioną szybkość tworzenia oprogramowania, gdzie w~przypadku napotkania błędów w~procesie jego kreacji możemy liczyć na~pomoc społeczności w~jego rozwiązaniu jak i~szeroką gamę wcześniej stworzonych narzędzi.
 
 
 
 \section{Python 3}
-Sercem każdego programu jest język, w którym został on napisany. Językiem programowania, wybranym do implementacji projektu jest \textbf{Python} w wersji 3.11.
-Jest to wysokopoziomowy, wieloparadygmatowy język skryptowy ogólnego przeznaczenia, którego ideą przewodnią jest czytelność uzyskanego kodu źródłowego. Powstał w 1991 roku i jest ciągle rozwijany oraz cieszy się od wielu lat niesłabnącą popularnością, która wynika między innymi z:
+Sercem każdego programu jest język, w~którym został on napisany. Językiem programowania, wybranym do implementacji projektu jest \textbf{Python} w~wersji 3.11.
+Jest to wysokopoziomowy, wieloparadygmatowy język skryptowy ogólnego przeznaczenia, którego ideą przewodnią jest czytelność uzyskanego kodu źródłowego. Powstał w~1991 roku i~jest ciągle rozwijany oraz cieszy się od wielu lat niesłabnącą popularnością, która wynika między innymi z:
 
 \begin{itemize}
-	\item Łatwość nauki
+	\item Łatwości nauki
 	\item Dostępności materiałów dydaktycznych
 	\item Wszechstronności języka
 	\item Mnogości różnorodnych bibliotek
-	\item Wieloplatformowość
+	\item Wieloplatformowości
 \end{itemize}
 
 \section{Wykorzystywane biblioteki}
 
 \subsection*{PyTorch}
-Otwartoźródłowa biblioteka uczenia maszynowego stworzona przez Facebook AI Research (teraz Meta AI), bazowana na Pythonie i Torch-u, głównie używana do aplikacji uczenia maszynowego używających procesorów graficznych i TPU. PyTorch jest preferowany przez wielu badaczy sztucznej inteligencji przez używanie dynamicznych grafów obliczeń, co pozwala na uruchamianie i testowanie małych części kodu w czasie rzeczywistym bez potrzeby implementacji całości kodu, móc sprawdzić czy dana część kodu działa czy nie.
+Otwartoźródłowa biblioteka uczenia maszynowego stworzona przez Facebook AI Research\linebreak(teraz Meta AI), bazowana na~Pythonie i~Torch-u, głównie używana do aplikacji uczenia maszynowego używających procesorów graficznych i~TPU. PyTorch jest preferowany przez wielu badaczy sztucznej inteligencji przez używanie dynamicznych grafów obliczeń, co~pozwala na~uruchamianie i~testowanie małych części kodu w~czasie rzeczywistym bez potrzeby implementacji całości kodu, móc sprawdzić czy dana część kodu działa czy nie.
 
 Głównymi zaletami PyTorch są:
 \begin{itemize}
-	\item Obliczenia tensorowe z dobrym wsparciem przyśpieszenia sprzętowego GPU i TPU
-	\item Automatyczne różnicowanie dla tworzenia i trenowania głębokich sieci neuronowych
+	\item Obliczenia tensorowe z~dobrym wsparciem przyśpieszenia sprzętowego GPU i~TPU
+	\item Automatyczne różnicowanie dla tworzenia i~trenowania głębokich sieci neuronowych
 \end{itemize}
 
 \subsection*{OpenCV}
-OpenCV (Open Source Computer Vision Library) jest otwartoźródłową biblioteką widzenia maszynowego oraz uczenia maszynowego. Została ona zbudowana by dostarczyć wspólną infrastrukturę dla aplikacji rozpoznawania obrazów oraz przyśpieszenia użycia percepcji maszynowej w produktach komercyjnych.
+OpenCV (Open Source Computer Vision Library) jest otwartoźródłową biblioteką widzenia\linebreak maszynowego oraz uczenia maszynowego. Została ona zbudowana by dostarczyć wspólną infrastrukturę dla aplikacji rozpoznawania obrazów oraz przyśpieszenia użycia percepcji maszynowej w~produktach komercyjnych.
 
 \subsection*{Pillow}
-Biblioteka będąca odgałęzieniem Python Imaging Library (PIL), która to dodaje możliwości przetwarzania obrazów do programów pisanych w języku Python. Dodaje ona szerokie wsparcie formatów plików, wydajną wewnętrzną reprezentację oraz duże możliwości przetwarzania obrazów. 
+Biblioteka będąca odgałęzieniem Python Imaging Library (PIL), która to dodaje możliwości\linebreak przetwarzania obrazów do programów pisanych w~języku Python. Dodaje ona szerokie wsparcie\linebreak formatów plików, wydajną wewnętrzną reprezentację oraz duże możliwości przetwarzania obrazów. 
 
 \subsection*{Lightning}
-Ułatwia implementowanie modeli uczenia głębokiego poprzez strukturyzację podstawowego kodu biblioteki \textit{PyTorch}. Umożliwia ona na trenowanie z użyciem wielu układów GPU w tym samym czasie jak i użytkowanie specjalistycznych jednostek TPU bez zmian w kodzie. Dodatkowo udostępnianie są takie możliwości jak tworzenie punktów zapisu w trakcie uczenia, wcześniejsze zatrzymanie procesu uczenia przy osiągnięciu określonych parametrów oraz 16 bitową precyzję. Modele uzyskane przy jej użyciu mogą być używane na dowolnej konfiguracji sprzętowej, na której jest możliwe zainstalowanie tej biblioteki. 
+Ułatwia implementowanie modeli uczenia głębokiego poprzez strukturyzację podstawowego kodu biblioteki \textit{PyTorch}. Umożliwia ona na~trenowanie z~użyciem wielu układów GPU w~tym\linebreak samym czasie jak i~użytkowanie specjalistycznych jednostek TPU bez zmian w~kodzie. Dodatkowo udostępnianie są takie możliwości jak tworzenie punktów zapisu w~trakcie uczenia, wcześniejsze zatrzymanie procesu uczenia przy osiągnięciu określonych parametrów oraz 16 bitową precyzję. Modele\linebreak uzyskane przy jej użyciu mogą być używane na~dowolnej konfiguracji sprzętowej, na~której jest\linebreak możliwe zainstalowanie tej biblioteki. 
